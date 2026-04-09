@@ -7,7 +7,7 @@ Window {
     width: 900
     height: 600
     visible: true
-    title: "Project Icarus - UAV Ground Control"
+    title: "Project Garuda - UAV Ground Control"
     color: "#0f172a" // Deep Space Blue/Black
 
     // --- Background Styling ---

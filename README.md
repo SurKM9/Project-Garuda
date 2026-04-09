@@ -1,5 +1,7 @@
 # 🛸 Project Garuda: UAV Telemetry & Control Suite
 
+![Project Garuda Preview](./assets/preview.gif)
+
 A high-performance, real-time **Distributed System** designed for Unmanned Aerial Vehicle (UAV) ground control. This suite features a simulated drone flight engine and a modern graphical dashboard, communicating via a custom low-latency binary protocol.
 
 ---
