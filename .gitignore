@@ -1,0 +1,18 @@
+# Prerequisites
+build/
+bin/
+obj/
+
+# IDE files
+.vscode/
+.qtc_clangd/
+*.user
+*.swp
+
+# Doxygen derived products (We host these differently!)
+html/
+latex/
+
+# OS files
+.DS_Store
+Thumbs.db
