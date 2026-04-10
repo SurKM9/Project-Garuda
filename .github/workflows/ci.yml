@@ -1,0 +1,25 @@
+name: Project Garuda CI
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+       sudo apt update
+       sudo apt install -y build-essential cmake qt6-base-dev libqt6charts6-dev doxygen graphviz
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build Project
+      run: cmake --build build --parallel $(nproc)
+
+    - name: Run unit tests
+      run: cd build && ctest --output-on-failure
