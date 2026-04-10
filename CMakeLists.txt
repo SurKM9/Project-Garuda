@@ -9,6 +9,8 @@ add_subdirectory(Common)
 add_subdirectory(Simulator)
 add_subdirectory(Backend)
 add_subdirectory(Dashboard)
+enable_testing()
+add_subdirectory(Tests)
 
 find_package(Doxygen)
 
