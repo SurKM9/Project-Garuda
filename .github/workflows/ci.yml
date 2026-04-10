@@ -10,10 +10,18 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install dependencies
+   - name: Install Dependencies
       run: |
-       sudo apt update
-       sudo apt install -y build-essential cmake qt6-base-dev libqt6charts6-dev doxygen graphviz
+        sudo apt update
+        sudo apt install -y \
+          build-essential \
+          cmake \
+          qt6-base-dev \
+          qt6-charts-dev \
+          libqt6charts6-dev \
+          libboost-all-dev \
+          doxygen \
+          graphviz
 
     - name: Configure CMake
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release
