@@ -1,8 +1,10 @@
 # 🛸 Project Garuda: UAV Telemetry & Control Suite
 
-![Project Garuda Preview](./assets/preview.gif)
+[![Project Garuda CI](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml)
 
 A high-performance, real-time **Distributed System** designed for Unmanned Aerial Vehicle (UAV) ground control. This suite features a simulated drone flight engine and a modern graphical dashboard, communicating via a custom low-latency binary protocol.
+
+![Project Garuda Preview](./assets/preview.gif)
 
 ---
 
@@ -56,11 +58,18 @@ One-shot command to install the entire development environment on Ubuntu/Kubuntu
 
 ```zsh
 sudo apt update && sudo apt install -y \
-    build-essential cmake clang-18 \
-    qt6-base-dev qt6-declarative-dev \
-    qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts \
-    qml6-module-qtcharts libqt6charts6-dev \
-    libqt6widgets6 doxygen graphviz
+          build-essential \
+          cmake \
+          qt6-base-dev \
+          qt6-declarative-dev \
+          qt6-charts-dev \
+          libqt6charts6-dev \
+          libxkbcommon-dev \
+          libgl1-mesa-dev \
+          libvulkan-dev \
+          libboost-all-dev \
+          doxygen \
+          graphviz
 ```
 ### 2. Build Instructions
 ```
