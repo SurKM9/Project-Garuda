@@ -6,5 +6,5 @@ target_include_directories(UAV_Common INTERFACE
 )
 
 target_sources(UAV_Common INTERFACE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/TelemetryData.hpp"
+    include/TelemetryData.hpp
 )

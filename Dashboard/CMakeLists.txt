@@ -28,8 +28,7 @@ target_include_directories(DashboardApp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/inc
 
 # This tells the IDE WHICH files to show you in the sidebar
 target_sources(DashboardApp PRIVATE
-    include/TelemetryProvider.hpp
-    # (Any other headers you create later go here)
+    include/TelemetryProvider.hpp    
 )
 
 # 6. Link your Common library and Qt
