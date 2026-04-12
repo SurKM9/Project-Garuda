@@ -1,37 +1,17 @@
-name: Project Garuda CI
+name: Project Garuda Docker CI
 
 on: [push, pull_request]
 
 jobs:
-  build-and-test:
+  docker-build-and-test:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          cmake \
-          qt6-base-dev \
-          qt6-declarative-dev \
-          qt6-charts-dev \
-          libqt6charts6-dev \
-          libxkbcommon-dev \
-          libgl1-mesa-dev \
-          libvulkan-dev \
-          libboost-all-dev \
-          doxygen \
-          graphviz
+    - name: Build Docker Image
+      run:  docker build -t garuda-ci .
 
-    - name: Configure CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build Project
-      run: cmake --build build --parallel $(nproc)
-
-    - name: Run unit tests
-      run: cd build && ctest --output-on-failure
+    - name: Run unit tests inside container
+      run:  docker run --rm garuda-ci 
