@@ -58,7 +58,7 @@ int main() {
         // A. Check for incoming commands (Non-blocking)
         CommandPacket cmd;
         if (recvfrom(cmdSock, &cmd, sizeof(cmd), 0, nullptr, nullptr) > 0) {
-            if (cmd.command_id == static_cast<uint32_t>(UAVCommand::Land)) {
+            if (cmd.command_seq == static_cast<uint32_t>(CommandType::LAND)) {
                 isLanding = true;
                 std::cout << "[SIM] Command Verified: Initiating Landing Sequence." << std::endl;
             }

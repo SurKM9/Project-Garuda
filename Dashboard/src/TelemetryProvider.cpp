@@ -61,7 +61,7 @@ void TelemetryProvider::sendLandCommand() {
 
     // 2. Prepare the packet
     CommandPacket cmd;
-    cmd.command_id = static_cast<uint32_t>(UAVCommand::Land);
+    cmd.command_seq = static_cast<uint32_t>(CommandType::LAND);
     cmd.param1 = 0.0f; // Target altitude is 0 for landing
 
     // 3. Blast it!

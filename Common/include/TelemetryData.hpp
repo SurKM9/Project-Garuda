@@ -3,35 +3,37 @@
 
 #include <cstdint>
 
-enum class UAVCommand : uint32_t {
-    None = 0,
-    Land = 1,
-    Takeoff = 2,
-    EmergencyStop = 3
+enum class FlightState : uint8_t {
+    IDLE = 0, ARMED, TAKEOFF, FLYING, LANDING, EMERGENCY
 };
 
-/**
- * @brief TelemetryPacket
- * We use #pragma pack(1) to ensure the structure is exactly 22 bytes.
- * This prevents the compiler from adding "padding" bytes for alignment,
- * which is critical when sending raw bytes over a network socket.
- */
+enum class CommandType : uint8_t {
+    NONE = 0,
+    ARM = 1,
+    DISARM = 2,
+    TAKEOFF = 3,
+    LAND = 4,
+    EMERGENCY_STOP = 99
+};
+
 #pragma pack(push, 1)
 struct TelemetryPacket {
-    uint32_t packet_id;    // 4 bytes
-    float latitude;        // 4 bytes
-    float longitude;       // 4 bytes
-    float altitude;        // 4 bytes
-    float velocity;        // 4 bytes
-    uint8_t battery_pct;   // 1 byte
-    uint8_t flight_mode;   // 1 byte
+    uint32_t packet_id;
+    float latitude;
+    float longitude;
+    float altitude;
+    float velocity;
+    uint8_t battery_pct;
+    uint8_t flight_mode;
+    FlightState state;     // Byte 23
 };
 
 struct CommandPacket {
-    uint32_t command_id; // 1 = Land, 2 = Takeoff, 3 = Emergency Stop
-    float param1;        // Extra data (e.g., target altitude)
+    uint32_t command_seq;  // Formerly command_id (tracking number)
+    CommandType type;      // The actual command (Arm, Takeoff, etc.)
+    uint8_t reserved;      // Padding for 4-byte alignment
+    float param1;          // Extra data (e.g., target altitude)
 };
-
 #pragma pack(pop)
 
-#endif // TELEMETRY_DATA_HPP
+#endif

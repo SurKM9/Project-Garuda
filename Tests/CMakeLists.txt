@@ -14,7 +14,14 @@ FetchContent_MakeAvailable(googletest)
 # Find the threading library (required for GTest on Linux)
 find_package(Threads REQUIRED)
 
-add_executable(run_tests test_main.cpp)
+add_executable(run_tests
+    test_main.cpp
+    flight_logic_tests.cpp
+    ../Simulator/FlightController.cpp
+)
+
+# Ensure the tests can find the Simulator headers
+target_include_directories(run_tests PRIVATE ../Simulator)
 
 # MENTOR TIP: Order matters!
 # We link the 'main' wrapper, then the 'core' engine, then the system threads.

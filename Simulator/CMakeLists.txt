@@ -3,8 +3,17 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 OLD)
 endif()
 
-# The rest remains the same
-add_executable(UAV_Simulator src/main.cpp)
+set(SIM_SOURCES
+    main.cpp
+    FlightController.cpp
+)
+
+set(SIM_HEADERS
+    FlightController.hpp
+)
+
+# create an executable
+add_executable(UAV_Simulator ${SIM_SOURCES} ${SIM_HEADERS})
 
 find_package(Boost REQUIRED COMPONENTS system)
 
