@@ -23,8 +23,10 @@ RUN cmake -B build -DCMAKE_BUILD_TYPE=Release && \
 
 # We find the binaries and move them to a flat /dist folder.
 RUN mkdir /dist && \
-    find build -type f -name "UAV_Simulator" -exec cp {} /dist/simulator \; && \
-    find build -type f -name "run_tests" -exec cp {} /dist/run_tests \;
+    # Search for 'drone_sim' because of the OUTPUT_NAME property in CMake
+    find build -type f -name "drone_sim" -exec cp {} /dist/simulator \; && \
+    find build -type f -name "run_tests" -exec cp {} /dist/run_tests \; && \
+    chmod +x /dist/simulator /dist/run_tests
 
 # --- STAGE 2: The Runtime ---
 FROM ubuntu:24.04 AS runtime
@@ -45,5 +47,8 @@ COPY --from=builder /dist/ .
 # Verify the files are there
 RUN ls -la /app
 
-# Default to running the tests
-CMD ["./run_tests"]
+# Use Tini to handle our Ctrl+C signal correctly [PID 1 Fix]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+# Default to the simulator for easier SITL testing
+CMD ["./simulator"]

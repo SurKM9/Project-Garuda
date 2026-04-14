@@ -41,3 +41,21 @@ TEST(FlightLogic, TakeoffAndClimb) {
     fc.update(1.0f);
     EXPECT_NEAR(fc.getAltitude(), 0.5f, 0.001f);
 }
+
+// Test 3: Prevent midair disarm
+TEST(FlightLogic, PreventMidAirDisarm)
+{
+    FlightController fc;
+
+    // Get into a flying state
+    fc.handleCommand({0, CommandType::ARM, 0, 0});
+    fc.handleCommand({1, CommandType::TAKEOFF, 0, 10.0f});
+    fc.update(5.0f); // Now we are at ~2.5m altitude
+
+    // Try to disarm while in the air
+    CommandPacket disarmCmd{2, CommandType::DISARM, 0, 0};
+    fc.handleCommand(disarmCmd);
+
+    // State should NOT be IDLE; it should still be TAKEOFF or FLYING
+    EXPECT_NE(fc.getState(), FlightState::IDLE);
+}
