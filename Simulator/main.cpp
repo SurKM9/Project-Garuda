@@ -59,7 +59,7 @@ int main() {
     std::cout << "Press Ctrl+C to stop." << std::endl;
 
     // 4. Main Simulation Loop
-    while (keepRunning) {
+    while (true) {
         // A. Calculate Delta Time (dt)
         auto current_time = std::chrono::steady_clock::now();
         std::chrono::duration<float> elapsed = current_time - last_time;

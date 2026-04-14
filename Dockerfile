@@ -47,8 +47,5 @@ COPY --from=builder /dist/ .
 # Verify the files are there
 RUN ls -la /app
 
-# Use Tini to handle our Ctrl+C signal correctly [PID 1 Fix]
-ENTRYPOINT ["/usr/bin/tini", "--"]
-
 # Default to the simulator for easier SITL testing
 CMD ["./simulator"]
