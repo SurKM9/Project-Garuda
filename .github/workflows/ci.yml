@@ -14,4 +14,5 @@ jobs:
       run:  docker build -t garuda-ci .
 
     - name: Run unit tests inside container
-      run:  docker run --rm garuda-ci 
+      # By adding './run_tests' at the end, we override the default CMD
+      run:  docker run --rm garuda-ci ./run_tests
