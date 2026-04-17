@@ -27,10 +27,10 @@ target_include_directories(run_tests PRIVATE ../Simulator)
 # We link the 'main' wrapper, then the 'core' engine, then the system threads.
 target_link_libraries(run_tests
     PRIVATE
-    GTest::gtest_main      # 1. The entry point
-    GTest::gtest           # 2. The core logic
-    Threads::Threads # 3. The OS support
-    UAV_Common      # 4. Your headers
+    GTest::gtest_main
+    GTest::gtest
+    Threads::Threads
+    UAV_Common
 )
 
 # This tells CMake to 'discover' the tests inside the executable

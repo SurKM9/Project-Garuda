@@ -5,7 +5,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /build_env
 
 # Install compilers and dev-headers
-RUN apt-get update && apt-get install -y \
+# Swap to a German mirror for faster downloads
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://de.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt update && \
+    apt install -y \
     build-essential cmake clang-18 llvm-18 \
     qt6-base-dev qt6-declarative-dev qt6-charts-dev \
     libqt6charts6-dev libxkbcommon-dev libgl1-mesa-dev \
@@ -14,6 +17,10 @@ RUN apt-get update && apt-get install -y \
 
 ENV CC=clang-18
 ENV CXX=clang++-18
+
+# Copy ONLY the CMakeLists.txt first
+# This allows Docker to cache the 'environment setup'
+COPY CMakeLists.txt ./
 
 COPY . .
 
@@ -32,7 +39,9 @@ RUN mkdir /dist && \
 FROM ubuntu:24.04 AS runtime
 
 # Sticking with your preference for qt6-base-dev for now
-RUN apt-get update && apt-get install -y \
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://de.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt update && \
+    apt install -y \
     qt6-base-dev \
     libqt6charts6 \
     libboost-system1.83.0 \

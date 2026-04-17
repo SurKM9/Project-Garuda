@@ -59,3 +59,23 @@ TEST(FlightLogic, PreventMidAirDisarm)
     // State should NOT be IDLE; it should still be TAKEOFF or FLYING
     EXPECT_NE(fc.getState(), FlightState::IDLE);
 }
+
+TEST(FlightLogic, SafetyMidAirDisarm)
+{
+    FlightController fc;
+
+    // Get the drone into the air
+    fc.handleCommand({0, CommandType::ARM, 0, 0.0f});
+    fc.handleCommand({1, CommandType::TAKEOFF, 0, 10.0f});
+
+    // Simulate some time so it climbs to ~2.5 meters
+    fc.update(5.0f);
+    ASSERT_GT(fc.getAltitude(), 1.0f);
+
+    // Attempt to disarm mid-flight
+    CommandPacket disarm{0, CommandType::DISARM, 0, 0.0f};
+    fc.handleCommand(disarm);
+
+    // Expect to ignore disarm command and stay in flying or takeoff state
+    EXPECT_NE(fc.getState(), FlightState::IDLE);
+}

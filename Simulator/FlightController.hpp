@@ -40,7 +40,8 @@ private:
     FlightState m_currentState;
     float m_altitude;
     float m_targetAltitude;
-    float m_battery;
+    uint8_t m_battery;
+    float m_velocity;
 
     bool canArm() const;
     bool canTakeoff() const;

@@ -38,6 +38,12 @@ class TelemetryProvider : public QObject
      */
     Q_PROPERTY(int battery READ battery NOTIFY batteryChanged)
 
+    /**
+     * @property Telemetry::flightState
+     * @brief current state of the flight
+     */
+    Q_PROPERTY(int flightState READ flightState NOTIFY flightStateChanged)
+
 public:
     explicit TelemetryProvider(QObject *parent = nullptr);
     ~TelemetryProvider();
@@ -66,7 +72,7 @@ public:
      * @brief Sends a command to the UAV to begin landing procedures.
      * @see CommandPacket
      */
-    Q_INVOKABLE void sendLandCommand();
+    Q_INVOKABLE void sendCommand(int type, float param = 0.0f);
 
     /**
      * @brief Initiates the background networking thread.
@@ -78,6 +84,12 @@ public:
      */
     void stop();
 
+    /**
+     * @brief flightState
+     * @return current state
+     */
+    int flightState() const;
+
 signals:
     // These signals tell QML to redraw the screen
 
@@ -88,6 +100,7 @@ signals:
     void altitudeChanged();
     void velocityChanged();
     void batteryChanged();
+    void flightStateChanged();
 
 private:
 
@@ -103,6 +116,7 @@ private:
     std::mutex m_mutex;
     std::atomic<bool> m_running{false};
     std::thread m_workerThread;
+    int m_flightState;
 };
 
 #endif // TELEMETRYPROVIDER_HPP

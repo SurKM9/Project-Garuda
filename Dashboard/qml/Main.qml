@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
+import QtQuick.Layouts 1.15
 import QtCharts
 
 Window {
@@ -83,29 +83,46 @@ Window {
                 }
             }
 
-            Item { Layout.fillHeight: true } // Spacer
+            Item { Layout.fillHeight: true } // Spacer            
+        }
 
-            // Big Action Button
-            Button {
-                Layout.fillWidth: true
-                height: 60
-                text: "INITIATE LANDING"
-                onClicked: telemetry.sendLandCommand()
+        Rectangle {
+            width: 200
+            color: "#2c3e50"
 
-                contentItem: Text {
-                    text: parent.text
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 15
+                spacing: 20 // Space between buttons
+
+                Text {
+                    text: "DRONE CONTROLS"
                     color: "white"
-                    font.pixelSize: 16
                     font.bold: true
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    Layout.alignment: Qt.AlignHCenter
                 }
 
-                background: Rectangle {
-                    color: parent.down ? "#991b1b" : "#ef4444"
-                    radius: 8
-                    layer.enabled: true
+                Button {
+                    text: "ARM SYSTEM"
+                    Layout.fillWidth: true // Makes button take full width of column
+                    onClicked: telemetry.sendCommand(1)
                 }
+
+                Button {
+                    text: "TAKEOFF"
+                    Layout.fillWidth: true
+                    enabled: telemetry.flightState === 1 // Only enabled if ARMED
+                    onClicked: telemetry.sendCommand(3, 10.0)
+                }
+
+                Button {
+                    text: "LAND"
+                    Layout.fillWidth: true
+                    onClicked: telemetry.sendCommand(4)
+                }
+
+                // Pushes everything to the top
+                Item { Layout.fillHeight: true }
             }
         }
 
@@ -133,14 +150,14 @@ Window {
                 ValueAxis {
                     id: axisY
                     min: 0
-                    max: 100 // We'll update this dynamically
+                    max: 15 // We'll update this dynamically
                     titleText: "Altitude (m)"
                 }
 
                 ValueAxis {
                     id: axisX
                     min: 0
-                    max: 50 // Show last 50 data points
+                    max: 15 // Show last 50 data points
                     labelFormat: " " // Hide X labels for a cleaner look
                 }
 

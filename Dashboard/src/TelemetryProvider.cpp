@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <iostream>
+#include <QDebug>
 
 TelemetryProvider::TelemetryProvider(QObject *parent) : QObject(parent) {}
 
@@ -22,51 +23,82 @@ void TelemetryProvider::stop() {
 }
 
 void TelemetryProvider::runReceiver() {
+    // 1. Setup the raw socket (Same as you had)
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    // timer for periodic waking of socket
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 500000; // 500ms timeout
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
     struct sockaddr_in servaddr;
+    std::memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(14550);
+    servaddr.sin_port = htons(5001); // Match the Simulator's Send Port
 
-    bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        perror("Bind failed");
+        return;
+    }
 
+    // Temporary buffer to hold the incoming raw bytes
     TelemetryPacket buffer;
+
     while (m_running) {
+        // 2. Receive the data
+        // recvfrom returns the number of bytes received
         ssize_t n = recvfrom(sockfd, &buffer, sizeof(buffer), 0, nullptr, nullptr);
-        if (n > 0) {
+
+        // 3. Size check
+        // If recvfrom timed out, n will be -1.
+        // The loop will simply restart and check m_running
+        if (n == sizeof(TelemetryPacket)) {
             std::lock_guard<std::mutex> lock(m_mutex);
 
-            // Check if data actually changed before waking up the UI
+            // 4. Check for changes to avoid unnecessary UI refreshes
             bool altChanged = (m_data.altitude != buffer.altitude);
+            bool velChanged = (m_data.velocity != buffer.velocity);
+            bool batChanged = (m_data.battery_pct != buffer.battery_pct);
+            bool stateChanged = (m_data.state != buffer.state);
 
+            // Update the internal data model
             m_data = buffer;
 
-            // Emit signals to wake up QML (must stay on the UI thread)
+            // 5. Emit signals (This wakes up the QML UI)
             if (altChanged) emit altitudeChanged();
-            emit velocityChanged();
-            emit batteryChanged();
+            if (velChanged) emit velocityChanged();
+            if (batChanged) emit batteryChanged();
+            if (stateChanged) emit flightStateChanged(); // New signal we added
+
+        } else if (n > 0) {
+            std::cout << "[Dashboard] Warning: Received packet of unexpected size: " << n << std::endl;
         }
     }
     close(sockfd);
 }
 
-void TelemetryProvider::sendLandCommand() {
-    // 1. Create a temporary socket for sending
+void TelemetryProvider::sendCommand(int type, float param) {
     int sendSock = socket(AF_INET, SOCK_DGRAM, 0);
-
     struct sockaddr_in simAddr;
     simAddr.sin_family = AF_INET;
-    simAddr.sin_port = htons(14551); // Simulator will listen on 14551
+    simAddr.sin_port = htons(5000); // Simulator's command listen port
     simAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    // 2. Prepare the packet
     CommandPacket cmd;
-    cmd.command_seq = static_cast<uint32_t>(CommandType::LAND);
-    cmd.param1 = 0.0f; // Target altitude is 0 for landing
+    cmd.command_seq = 0;
+    cmd.type = static_cast<CommandType>(type);
+    cmd.reserved = 0;
+    cmd.param1 = param;
 
-    // 3. Blast it!
     sendto(sendSock, &cmd, sizeof(cmd), 0, (struct sockaddr*)&simAddr, sizeof(simAddr));
-
-    std::cout << "[GCS] Sent LAND command to Simulator" << std::endl;
     close(sendSock);
+
+    qDebug() << "[GCS] Sent Command Type:" << type << "Param:" << param;
+}
+
+int TelemetryProvider::flightState() const
+{
+    return static_cast<int>(m_data.state);
 }
