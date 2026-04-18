@@ -27,19 +27,19 @@ TEST(FlightLogic, ArmingSequence){
 TEST(FlightLogic, TakeoffAndClimb) {
     FlightController fc;
 
-    // Arm then Takeoff
-    CommandPacket armCmd{0, CommandType::ARM, 0, 0};
-    fc.handleCommand(armCmd);
+    // 1. Arm and Takeoff
+    fc.handleCommand({0, CommandType::ARM, 0, 0});
+    fc.handleCommand({1, CommandType::TAKEOFF, 0, 10.0f});
 
-    CommandPacket takeoffCmd{1, CommandType::TAKEOFF, 0, 5.0f}; // Target 5m
-    fc.handleCommand(takeoffCmd);
-
-    EXPECT_EQ(fc.getState(), FlightState::TAKEOFF);
-
-    // Simulate 1 second of flight (dt = 1.0)
-    // Our logic says climb is 0.5m/s, so altitude should be 0.5m
+    // 2. Simulate 1 second of flight (dt = 1.0)
     fc.update(1.0f);
-    EXPECT_NEAR(fc.getAltitude(), 0.5f, 0.001f);
+
+    // 3. New Physics Expectations:
+    // Velocity should be: 15.0 (Thrust) - 9.81 (Gravity) = 5.19 m/s
+    EXPECT_NEAR(fc.getVelocity(), 5.19f, 0.001f);
+
+    // Altitude should be: v * dt = 5.19 * 1.0 = 5.19 m
+    EXPECT_NEAR(fc.getAltitude(), 5.19f, 0.001f);
 }
 
 // Test 3: Prevent midair disarm

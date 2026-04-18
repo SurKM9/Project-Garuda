@@ -35,6 +35,12 @@ public:
      */
     float getAltitude() const {return m_altitude;}
 
+    /**
+     * @brief getVelocity
+     * @return
+     */
+    float getVelocity() const {return m_velocity;}
+
 private:
 
     FlightState m_currentState;
