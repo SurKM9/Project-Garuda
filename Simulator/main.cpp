@@ -15,10 +15,24 @@
 // Networking Constants
 const int LISTEN_PORT = 5000;      // Port to receive commands from Dashboard
 const int SEND_PORT = 5001;        // Port to send telemetry to Dashboard
-const char* GCS_IP = "127.0.0.1";  // Localhost for now
 
-int main() {
+int main(int argc, char* argv[]) {
     std::cout << "--- Project Garuda: UAV Simulator Starting ---" << std::endl;
+
+    // default ip localhost
+    std::string gcs_ip = "127.0.0.1";
+
+    // if ip argument is provided
+    // ip argument is used for Yocto/QEMU configuration
+    if(argc > 1)
+    {
+        gcs_ip = argv[1];
+        std::cout << "[Config]: Using Override GCS IP " << gcs_ip << std::endl;
+    }
+    else
+    {
+        std::cout << "[Config]: No IP provided. Defaulting to " << gcs_ip << std::endl;
+    }
 
     // 1. Initialize our Flight Controller (The Brain)
     FlightController controller;
@@ -48,7 +62,7 @@ int main() {
     struct sockaddr_in cliaddr{};
     cliaddr.sin_family = AF_INET;
     cliaddr.sin_port = htons(SEND_PORT);
-    inet_pton(AF_INET, GCS_IP, &cliaddr.sin_addr);
+    inet_pton(AF_INET, gcs_ip.c_str(), &cliaddr.sin_addr);
 
     // 3. Timing Setup
     auto last_time = std::chrono::steady_clock::now();

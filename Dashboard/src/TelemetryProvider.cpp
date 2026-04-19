@@ -80,11 +80,16 @@ void TelemetryProvider::runReceiver() {
 }
 
 void TelemetryProvider::sendCommand(int type, float param) {
+
+    // Define the target.
+    // Use 127.0.0.1 for local testing, 192.168.7.2 for Yocto/QEMU TAP
+    const char* DRONE_IP = "192.168.7.2";
+
     int sendSock = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in simAddr;
     simAddr.sin_family = AF_INET;
     simAddr.sin_port = htons(5000); // Simulator's command listen port
-    simAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    simAddr.sin_addr.s_addr = inet_addr(DRONE_IP);
 
     CommandPacket cmd;
     cmd.command_seq = 0;

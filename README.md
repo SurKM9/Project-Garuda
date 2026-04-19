@@ -2,7 +2,7 @@
 
 [![Project Garuda CI](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml)
 
-A high-performance, real-time **Distributed System** designed for Unmanned Aerial Vehicle (UAV) ground control. This suite features a simulated drone flight engine and a modern graphical dashboard, communicating via a custom low-latency binary protocol.
+A high-performance, real-time Distributed System designed for Unmanned Aerial Vehicle (UAV) ground control. This suite features a simulated drone flight engine running on Custom Embedded Linux (Yocto Project) and a modern graphical dashboard, communicating via a low-latency UDP protocol.
 
 ![Project Garuda Preview](./assets/preview.gif)
 ![Project Garuda Structure](./assets/architecture.png)
@@ -39,8 +39,57 @@ The project is structured into three distinct modules to ensure a clean separati
 1.  **`UAV_Common`**: The "Contract." Contains memory-packed binary structures (`TelemetryPacket` and `CommandPacket`) to ensure bit-perfect compatibility between the Simulator and the Dashboard.
 2.  **`Simulator`**: The "Drone." Manages the flight state machine and an asynchronous command listener. Implements graceful shutdown via Linux signal handling.
 3.  **`Dashboard`**: The "Ground Control." Uses a dedicated background worker thread for networking to maintain a responsive 60FPS UI.
+4.  **`meta-garuda`**: The Yocto Layer. Contains the BitBake recipes and configurations to build the Flight Controller into a production-ready Linux image.
 
 ---
+
+## 🛰 SITL Networking Matrix
+
+The system supports two primary modes of operation. Port 5000 is used for Command Uplink and Port 5001 is used for Telemetry Downlink.
+
+| Environment | Mode | Host (GCS) IP | Drone IP |
+| :--- | :--- | :--- | :--- |
+| **Local Desktop** | Localhost | `127.0.0.1` | `127.0.0.1` |
+| **Yocto / QEMU** | TAP Bridge | `192.168.7.1` | `192.168.7.2` |
+| **Yocto / QEMU** | SLIRP (NAT) | `10.0.2.2` | `10.0.2.15` |
+
+## 🏗 Build Instructions
+
+### Native Desktop Build (Kubuntu)
+```zsh
+mkdir build && cd build
+cmake .. -DBUILD_DASHBOARD=ON -DBUILD_SIMULATOR=ON
+make -j$(nproc)
+```
+
+### Yocto Embedded Build (Poky)
+- To build the Project Garuda Linux distribution:
+- Initialize Environment: source oe-init-build-env
+- Add Layer: bitbake-layers add-layer /path/to/UAV_System/meta-garuda
+- Build Image: bitbake core-image-minimal
+
+### ⚡ Running the System
+
+1. The Drone (Inside QEMU)
+Launch the virtual machine. For TAP networking:
+
+```zsh
+runqemu qemux86-64
+```
+
+Once booted, run the pre-configured launch script:
+
+```zsh
+launch-drone  # Automatically connects to the host gateway at 192.168.7.1
+```
+
+2. The Dashboard (Native Host)
+Run the dashboard on your host machine. Ensure it is configured to point to the drone's virtual IP (default 192.168.7.2).
+
+```zsh
+./Dashboard/DashboardApp
+```
+
 
 ## 📈 Key Features
 

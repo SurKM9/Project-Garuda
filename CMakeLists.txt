@@ -5,26 +5,42 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define where our sub-projects are
+# Add a toggle option (default to ON for your local ThinkPad work)
+option(BUILD_DASHBOARD "Build the Qt Dashboard" ON)
+option(BUILD_SIMULATOR "Build the Flight Controller Simulator" ON)
+option(BUILD_TESTS "Build unit tests" ON)
+option(BUILD_DOCS  "Build API documentation" ON)
+
 add_subdirectory(Common)
-add_subdirectory(Simulator)
-add_subdirectory(Backend)
-add_subdirectory(Dashboard)
-enable_testing()
-add_subdirectory(Tests)
 
-find_package(Doxygen)
+if(BUILD_SIMULATOR)
+    add_subdirectory(Simulator)
+endif()
 
-if (DOXYGEN_FOUND)
-    set(DOXYGEN_GENERATE_HTML YES)
-    set(DOXYGEN_GENERATE_LATEX NO)
+if(BUILD_DASHBOARD)
+    add_subdirectory(Dashboard)
+endif()
 
-    # This command creates a "docs" target
-    doxygen_add_docs(docs
-        ${PROJECT_SOURCE_DIR}/Dashboard
-        ${PROJECT_SOURCE_DIR}/Simulator
-        ${PROJECT_SOURCE_DIR}/Common
-        ALL
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen"
-    )
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(Tests)
+endif()
+
+if(BUILD_DOCS)
+    find_package(Doxygen)
+
+    if (DOXYGEN_FOUND)
+        set(DOXYGEN_GENERATE_HTML YES)
+        set(DOXYGEN_GENERATE_LATEX NO)
+
+        # This command creates a "docs" target
+        doxygen_add_docs(docs
+            ${PROJECT_SOURCE_DIR}/Dashboard
+            ${PROJECT_SOURCE_DIR}/Simulator
+            ${PROJECT_SOURCE_DIR}/Common
+            ALL
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen"
+        )
+    endif()
 endif()
