@@ -1,14 +1,32 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QDebug>
 #include "TelemetryProvider.hpp"
+#include "GarudaConfig.hpp"
 
 using namespace Qt::StringLiterals;
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
+    GarudaConfig cfg = loadConfig();
+
+    // CLI arg overrides config file (useful for one-off testing)
+    if (argc > 1) {
+        cfg.drone_ip = argv[1];
+        qDebug() << "[Config] CLI override: Drone IP =" << argv[1];
+    }
+
+    qDebug() << "[Config] Drone IP:" << cfg.drone_ip.c_str()
+             << "| Command port:" << cfg.command_port
+             << "| Telemetry port:" << cfg.telemetry_port;
+
     TelemetryProvider provider;
+    provider.setDroneIp(QString::fromStdString(cfg.drone_ip));
+    provider.setCommandPort(cfg.command_port);
+    provider.setTelemetryPort(cfg.telemetry_port);
+
     provider.start();
 
     {

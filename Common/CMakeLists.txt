@@ -1,10 +1,12 @@
 add_library(UAV_Common INTERFACE)
 
-# We use CMAKE_CURRENT_SOURCE_DIR to be explicit
 target_include_directories(UAV_Common INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-target_sources(UAV_Common INTERFACE
-    include/TelemetryData.hpp
+# IDE-only target so Qt Creator shows headers in the project tree.
+# Has no effect on the build.
+add_custom_target(UAV_Common_Headers SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/TelemetryData.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/GarudaConfig.hpp
 )

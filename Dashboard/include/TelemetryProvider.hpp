@@ -74,6 +74,10 @@ public:
      */
     Q_INVOKABLE void sendCommand(int type, float param = 0.0f);
 
+    void setDroneIp(const QString& ip)  { m_droneIp = ip.toStdString(); }
+    void setCommandPort(uint16_t port)  { m_commandPort = port; }
+    void setTelemetryPort(uint16_t port){ m_telemetryPort = port; }
+
     /**
      * @brief Initiates the background networking thread.
      */
@@ -117,6 +121,9 @@ private:
     std::atomic<bool> m_running{false};
     std::thread m_workerThread;
     int m_flightState;
+    std::string m_droneIp{"127.0.0.1"};
+    uint16_t    m_commandPort{5000};
+    uint16_t    m_telemetryPort{5001};
 };
 
 #endif // TELEMETRYPROVIDER_HPP

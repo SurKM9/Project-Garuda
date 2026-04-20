@@ -41,6 +41,8 @@ public:
      */
     float getVelocity() const {return m_velocity;}
 
+    uint8_t getBattery() const {return m_battery;}
+
 private:
 
     FlightState m_currentState;

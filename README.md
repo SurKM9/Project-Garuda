@@ -36,7 +36,7 @@ Project Garuda demonstrates the integration of low-level Linux systems programmi
 
 The project is structured into three distinct modules to ensure a clean separation of concerns:
 
-1.  **`UAV_Common`**: The "Contract." Contains memory-packed binary structures (`TelemetryPacket` and `CommandPacket`) to ensure bit-perfect compatibility between the Simulator and the Dashboard.
+1.  **`UAV_Common`**: The "Contract." Contains memory-packed binary structures (`TelemetryPacket` and `CommandPacket`) to ensure bit-perfect compatibility between the Simulator and the Dashboard. Also provides `GarudaConfig`, a shared header-only config loader that resolves network settings from `/etc/garuda/garuda.conf`, a local `garuda.conf`, QEMU TAP auto-detection, or localhost defaults — in that order.
 2.  **`Simulator`**: The "Drone." Manages the flight state machine and an asynchronous command listener. Implements graceful shutdown via Linux signal handling.
 3.  **`Dashboard`**: The "Ground Control." Uses a dedicated background worker thread for networking to maintain a responsive 60FPS UI.
 4.  **`meta-garuda`**: The Yocto Layer. Contains the BitBake recipes and configurations to build the Flight Controller into a production-ready Linux image.
@@ -103,16 +103,21 @@ launch-drone  # Automatically connects to the host gateway at 192.168.7.1
 ```
 
 2. The Dashboard (Native Host)
-Run the dashboard on your host machine. Ensure it is configured to point to the drone's virtual IP (default 192.168.7.2).
+Run the dashboard on your host machine. It automatically detects whether QEMU TAP networking is active and connects to `192.168.7.2`. If QEMU is not running, it falls back to localhost.
 
 ```zsh
 ./Dashboard/DashboardApp
 ```
 
+A CLI argument overrides auto-detection for one-off use:
+```zsh
+./Dashboard/DashboardApp 192.168.7.2
+```
+
 ## 📈 Key Features
 
 * **Real-time Data Visualization:** Dynamic, auto-scaling line charts using Qt Charts for altitude history.
-* **Bi-Directional Communication:** Full-duplex UDP link for telemetry downlink (Port 14550) and command uplink (Port 14551).
+* **Bi-Directional Communication:** Full-duplex UDP link for telemetry downlink (Port 5001) and command uplink (Port 5000).
 * **Thread Safety:** Robust data protection using `std::lock_guard` to prevent race conditions.
 * **Resource Management:** Follows RAII principles and controlled object destruction order.
 

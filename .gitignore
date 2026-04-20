@@ -16,3 +16,6 @@ latex/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local network config at project root (machine-specific, not for version control)
+/garuda.conf

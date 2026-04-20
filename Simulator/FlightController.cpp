@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "FlightController.hpp"
 
 
@@ -31,6 +32,7 @@ void FlightController::handleCommand(const CommandPacket &cmd)
             m_targetAltitude = cmd.param1;
             std::cout << "[FlightController] Taking off to " << m_targetAltitude << "m\n";
         }
+        break;
 
     case CommandType::NONE:
         break;
@@ -67,13 +69,11 @@ void FlightController::update(float dt) {
     switch (m_currentState) {
         case FlightState::TAKEOFF:
             thrust = 15.0f; // More than gravity to climb
-            if (m_altitude >= 10.0f) m_currentState = FlightState::FLYING;
+            if (m_altitude >= m_targetAltitude) m_currentState = FlightState::FLYING;
             break;
 
         case FlightState::FLYING: {
-            // Simple "Target-Seeking" Logic
-            float target_alt = 10.0f;
-            float alt_error = target_alt - m_altitude;
+            float alt_error = m_targetAltitude - m_altitude;
 
             // If we are above the target, we need less thrust than gravity to drop back down
             // If we are below, we need more.
@@ -84,6 +84,10 @@ void FlightController::update(float dt) {
 
         case FlightState::LANDING:
             thrust = 7.0f; // Less than gravity to descend
+            if (m_altitude <= 0.0f && std::abs(m_velocity) < 0.1f) {
+                m_currentState = FlightState::ARMED;
+                std::cout << "[FlightController] Touchdown. Ready to disarm.\n";
+            }
             break;
 
         case FlightState::IDLE:

@@ -11,28 +11,22 @@
 
 #include "TelemetryData.hpp"
 #include "FlightController.hpp"
-
-// Networking Constants
-const int LISTEN_PORT = 5000;      // Port to receive commands from Dashboard
-const int SEND_PORT = 5001;        // Port to send telemetry to Dashboard
+#include "GarudaConfig.hpp"
 
 int main(int argc, char* argv[]) {
     std::cout << "--- Project Garuda: UAV Simulator Starting ---" << std::endl;
 
-    // default ip localhost
-    std::string gcs_ip = "127.0.0.1";
+    GarudaConfig cfg = loadConfig();
 
-    // if ip argument is provided
-    // ip argument is used for Yocto/QEMU configuration
-    if(argc > 1)
-    {
-        gcs_ip = argv[1];
-        std::cout << "[Config]: Using Override GCS IP " << gcs_ip << std::endl;
+    // CLI arg overrides config file (useful for one-off testing)
+    if (argc > 1) {
+        cfg.gcs_ip = argv[1];
+        std::cout << "[Config] CLI override: GCS IP = " << cfg.gcs_ip << "\n";
     }
-    else
-    {
-        std::cout << "[Config]: No IP provided. Defaulting to " << gcs_ip << std::endl;
-    }
+
+    std::cout << "[Config] GCS IP: " << cfg.gcs_ip
+              << " | Command port: " << cfg.command_port
+              << " | Telemetry port: " << cfg.telemetry_port << "\n";
 
     // 1. Initialize our Flight Controller (The Brain)
     FlightController controller;
@@ -51,7 +45,7 @@ int main(int argc, char* argv[]) {
     struct sockaddr_in servaddr{};
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(LISTEN_PORT);
+    servaddr.sin_port = htons(cfg.command_port);
 
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
         perror("Bind failed");
@@ -61,15 +55,15 @@ int main(int argc, char* argv[]) {
     // Setup destination address for Telemetry
     struct sockaddr_in cliaddr{};
     cliaddr.sin_family = AF_INET;
-    cliaddr.sin_port = htons(SEND_PORT);
-    inet_pton(AF_INET, gcs_ip.c_str(), &cliaddr.sin_addr);
+    cliaddr.sin_port = htons(cfg.telemetry_port);
+    inet_pton(AF_INET, cfg.gcs_ip.c_str(), &cliaddr.sin_addr);
 
     // 3. Timing Setup
     auto last_time = std::chrono::steady_clock::now();
     auto last_telemetry_time = std::chrono::steady_clock::now();
     uint32_t packet_counter = 0;
 
-    std::cout << "Simulator loop running. Listening on port " << LISTEN_PORT << "..." << std::endl;
+    std::cout << "Simulator loop running. Listening on port " << cfg.command_port << "..." << std::endl;
     std::cout << "Press Ctrl+C to stop." << std::endl;
 
     // 4. Main Simulation Loop
@@ -106,8 +100,8 @@ int main(int argc, char* argv[]) {
             tx_packet.latitude = 48.1351f;   // Fixed Munich coordinate for now
             tx_packet.longitude = 11.5820f;
             tx_packet.altitude = controller.getAltitude();
-            tx_packet.velocity = 0.0f;
-            tx_packet.battery_pct = 100;
+            tx_packet.velocity = controller.getVelocity();
+            tx_packet.battery_pct = controller.getBattery();
             tx_packet.flight_mode = 1;       // Manual
             tx_packet.state = controller.getState();
 

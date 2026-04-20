@@ -15,7 +15,8 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 EXTERNALSRC = "${THISDIR}/../../.."
 
 # 4. Include the helper script from the recipe's 'files' directory
-SRC_URI += "file://launch-drone.sh"
+SRC_URI += "file://launch-drone.sh \
+            file://garuda.conf"
 
 # 5. Build Configuration
 DEPENDS += "boost"
@@ -27,16 +28,18 @@ EXTRA_OECMAKE = "-DBUILD_DASHBOARD=OFF \
 
 # 6. Installation Logic
 do_install() {
-    # 1. Create the /usr/bin directory in the virtual image
+    # Install the binary
     install -d ${D}${bindir}
-
-    # 2. Install the binary using the OUTPUT_NAME from your CMakeLists.txt 
-    # We look in ${B} (the build directory) under the Simulator subfolder
     install -m 0755 ${B}/Simulator/drone_sim ${D}${bindir}
 
-    # 3. Install the startup script as 'launch-drone'
-    # This script should contain: drone_sim 10.0.2.2
+    # Install the startup script
     install -m 0755 ${WORKDIR}/launch-drone.sh ${D}${bindir}/launch-drone
+
+    # Install the config file to /etc/garuda/
+    install -d ${D}${sysconfdir}/garuda
+    install -m 0644 ${WORKDIR}/garuda.conf ${D}${sysconfdir}/garuda/garuda.conf
 }
 
 RDEPENDS:${PN} = "libstdc++ boost-system"
+
+CONFFILES:${PN} = "${sysconfdir}/garuda/garuda.conf"
