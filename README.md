@@ -53,6 +53,25 @@ The system supports two primary modes of operation. Port 5000 is used for Comman
 | **Yocto / QEMU** | TAP Bridge | `192.168.7.1` | `192.168.7.2` |
 | **Yocto / QEMU** | SLIRP (NAT) | `10.0.2.2` | `10.0.2.15` |
 
+### Install All Dependencies
+One-shot command to install the entire development environment on Ubuntu/Kubuntu:
+
+```zsh
+sudo apt update && sudo apt install -y \
+          build-essential \
+          cmake \
+          qt6-base-dev \
+          qt6-declarative-dev \
+          qt6-charts-dev \
+          libqt6charts6-dev \
+          libxkbcommon-dev \
+          libgl1-mesa-dev \
+          libvulkan-dev \
+          libboost-all-dev \
+          doxygen \
+          graphviz
+```
+
 ## 🏗 Build Instructions
 
 ### Native Desktop Build (Kubuntu)
@@ -90,7 +109,6 @@ Run the dashboard on your host machine. Ensure it is configured to point to the 
 ./Dashboard/DashboardApp
 ```
 
-
 ## 📈 Key Features
 
 * **Real-time Data Visualization:** Dynamic, auto-scaling line charts using Qt Charts for altitude history.
@@ -99,39 +117,6 @@ Run the dashboard on your host machine. Ensure it is configured to point to the 
 * **Resource Management:** Follows RAII principles and controlled object destruction order.
 
 ---
-
-## ⚡ Setup, Build, and Run
-
-### 1. Install All Dependencies
-One-shot command to install the entire development environment on Ubuntu/Kubuntu:
-
-```zsh
-sudo apt update && sudo apt install -y \
-          build-essential \
-          cmake \
-          qt6-base-dev \
-          qt6-declarative-dev \
-          qt6-charts-dev \
-          libqt6charts6-dev \
-          libxkbcommon-dev \
-          libgl1-mesa-dev \
-          libvulkan-dev \
-          libboost-all-dev \
-          doxygen \
-          graphviz
-```
-### 2. Build Instructions
-```
-mkdir build && cd build
-cmake ..
-make -j$(nproc)
-```
-
-### 3. Run
-```
-./Simulator/drone_sim
-./Dashboard/DashboardApp`
-```
 
 📖 API Documentation
 This project uses Doxygen for API documentation.
