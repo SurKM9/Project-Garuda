@@ -5,9 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /build_env
 
 # Install compilers and dev-headers
-# Swap to a German mirror for faster downloads
-RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://de.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
-    apt update && \
+RUN apt update && \
     apt install -y \
     build-essential cmake clang-18 llvm-18 \
     qt6-base-dev qt6-declarative-dev qt6-charts-dev \
@@ -38,13 +36,11 @@ RUN mkdir /dist && \
 # --- STAGE 2: The Runtime ---
 FROM ubuntu:24.04 AS runtime
 
-# Sticking with your preference for qt6-base-dev for now
-RUN sed -i 's|http://archive.ubuntu.com/ubuntu/|http://de.archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources && \
-    apt update && \
+RUN apt update && \
     apt install -y \
     qt6-base-dev \
     libqt6charts6 \
-    libboost-system1.83.0 \
+    libboost-system-dev \
     libxkbcommon0 \
     && rm -rf /var/lib/apt/lists/*
 
