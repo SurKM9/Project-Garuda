@@ -27,21 +27,27 @@ public:
      * @brief getState
      * @return
      */
-    FlightState getState() const {return m_currentState;}
+    FlightState getState() const;
 
     /**
      * @brief getAltitude
      * @return
      */
-    float getAltitude() const {return m_altitude;}
+    float getAltitude() const;
 
     /**
      * @brief getVelocity
      * @return
      */
-    float getVelocity() const {return m_velocity;}
+    float getVelocity() const;
 
     uint8_t getBattery() const {return m_battery;}
+
+    /**
+     * @brief setBattery
+     * @param pct
+     */
+    void setBattery(uint8_t pct);
 
 private:
 

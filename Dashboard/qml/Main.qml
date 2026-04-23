@@ -121,6 +121,18 @@ Window {
                     onClicked: telemetry.sendCommand(4)
                 }
 
+                Button {
+                    text: "DISARM"
+                    Layout.fillWidth: true
+                    onClicked: telemetry.sendCommand(2)
+                }
+
+                Button {
+                    text: "EMERGENCY STOP"
+                    Layout.fillWidth: true
+                    onClicked: telemetry.sendCommand(99)
+                }
+
                 // Pushes everything to the top
                 Item { Layout.fillHeight: true }
             }

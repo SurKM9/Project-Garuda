@@ -53,10 +53,11 @@ void FlightController::handleCommand(const CommandPacket &cmd)
         }
         break;
     case CommandType::EMERGENCY_STOP:
-        m_currentState = FlightState::EMERGENCY;
-        std::cout << "[FlightController] EMERGENCY STOP TRIGGERED!\n";
+        if (m_currentState == FlightState::FLYING || m_currentState == FlightState::TAKEOFF) {
+            m_currentState = FlightState::EMERGENCY;
+            std::cout << "[FlightController] EMERGENCY STOP TRIGGERED!\n";
+        }
         break;
-
     default:
         break;
     }
@@ -91,6 +92,15 @@ void FlightController::update(float dt) {
             break;
 
         case FlightState::IDLE:
+            break;
+        case FlightState::EMERGENCY:
+            thrust = 0.0f;
+            if(m_altitude <= 0.0f)
+            {
+                m_currentState = FlightState::IDLE;
+                m_velocity = 0.0f;
+            }
+            break;
         default:
             thrust = 0.0f;
             break;
@@ -106,6 +116,26 @@ void FlightController::update(float dt) {
         m_altitude = 0.0f;
         m_velocity = 0.0f;
     }
+}
+
+FlightState FlightController::getState() const
+{
+    return m_currentState;
+}
+
+float FlightController::getAltitude() const
+{
+    return m_altitude;
+}
+
+float FlightController::getVelocity() const
+{
+    return m_velocity;
+}
+
+void FlightController::setBattery(uint8_t pct)
+{
+    m_battery = pct;
 }
 
 bool FlightController::canArm() const
