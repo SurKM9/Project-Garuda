@@ -171,3 +171,19 @@ TEST(FlightLogic, LandRejectedWhenNotInFlight)
     fc.handleCommand({1, CommandType::LAND, 0, 0.0f});
     EXPECT_EQ(fc.getState(), FlightState::ARMED);
 }
+
+// Low battery while flying should trigger automatic forced landing
+TEST(FlightLogic, LowBatteryForceLanding)
+{
+    FlightController fc;
+
+    fc.handleCommand({0, CommandType::ARM, 0, 0.0f});
+    fc.handleCommand({1, CommandType::TAKEOFF, 0, 10.0f});
+    for (int i = 0; i < 200; ++i) fc.update(0.1f);
+    ASSERT_EQ(fc.getState(), FlightState::FLYING);
+
+    fc.setBattery(12);
+    fc.update(0.1f); // one tick is enough to trigger the check
+
+    EXPECT_EQ(fc.getState(), FlightState::LANDING);
+}

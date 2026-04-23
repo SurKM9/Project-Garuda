@@ -22,7 +22,6 @@ void FlightController::handleCommand(const CommandPacket &cmd)
             m_currentState = FlightState::ARMED;
             std::cout << "[FlightController] System ARMED\n";
         }
-
         break;
 
     case CommandType::TAKEOFF:
@@ -74,11 +73,12 @@ void FlightController::update(float dt) {
             break;
 
         case FlightState::FLYING: {
+            if (m_battery < 15) {
+                m_currentState = FlightState::LANDING;
+                std::cout << "[FlightController] Low battery! Forced landing initiated.\n";
+                break;
+            }
             float alt_error = m_targetAltitude - m_altitude;
-
-            // If we are above the target, we need less thrust than gravity to drop back down
-            // If we are below, we need more.
-            // We also use velocity as a "damper" to prevent oscillation.
             thrust = GRAVITY + (alt_error * 2.0f) - (m_velocity * 1.5f);
             break;
         }
@@ -131,6 +131,11 @@ float FlightController::getAltitude() const
 float FlightController::getVelocity() const
 {
     return m_velocity;
+}
+
+uint8_t FlightController::getBattery() const
+{
+    return m_battery;
 }
 
 void FlightController::setBattery(uint8_t pct)
