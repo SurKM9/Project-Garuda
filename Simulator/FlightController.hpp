@@ -3,12 +3,20 @@
 
 #include "TelemetryData.hpp"
 
+/**
+ * @class FlightController
+ * @brief Simulates UAV flight logic including state machine transitions and physics.
+ *
+ * Processes incoming CommandPackets to drive state transitions (IDLE → ARMED → TAKEOFF →
+ * FLYING → LANDING / EMERGENCY) and runs a physics engine each tick to update altitude
+ * and velocity based on thrust and gravity.
+ */
 class FlightController{
 
 public:
 
     /**
-     * @brief FlightController
+     * @brief Constructs a FlightController in the IDLE state with full battery.
      */
     FlightController();
 
@@ -41,11 +49,14 @@ public:
      */
     float getVelocity() const;
 
+    /**
+     * @brief Returns the current battery level as a percentage (0–100).
+     */
     uint8_t getBattery() const {return m_battery;}
 
     /**
-     * @brief setBattery
-     * @param pct
+     * @brief Overrides the battery level. Intended for use in unit tests only.
+     * @param pct Battery percentage to set (0–100).
      */
     void setBattery(uint8_t pct);
 

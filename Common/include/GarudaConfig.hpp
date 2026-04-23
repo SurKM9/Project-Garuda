@@ -9,11 +9,17 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/**
+ * @struct GarudaConfig
+ * @brief Network configuration for the GCS and Simulator.
+ * Populated by loadConfig() using a priority-ordered search across config file paths,
+ * QEMU TAP auto-detection, and localhost defaults.
+ */
 struct GarudaConfig {
-    std::string gcs_ip         = "127.0.0.1";
-    std::string drone_ip       = "127.0.0.1";
-    uint16_t    telemetry_port = 5001;
-    uint16_t    command_port   = 5000;
+    std::string gcs_ip         = "127.0.0.1"; ///< IP address of the Ground Control Station
+    std::string drone_ip       = "127.0.0.1"; ///< IP address of the Simulator (drone)
+    uint16_t    telemetry_port = 5001;        ///< UDP port the GCS listens on for telemetry
+    uint16_t    command_port   = 5000;        ///< UDP port the Simulator listens on for commands
 };
 
 // Checks whether a QEMU TAP interface is active by looking for 192.168.7.1
