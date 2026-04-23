@@ -187,3 +187,19 @@ TEST(FlightLogic, LowBatteryForceLanding)
 
     EXPECT_EQ(fc.getState(), FlightState::LANDING);
 }
+
+// Critical battery (< 5%) while flying should trigger emergency stop
+TEST(FlightLogic, CriticalBatteryForceEmergency)
+{
+    FlightController fc;
+
+    fc.handleCommand({0, CommandType::ARM, 0, 0.0f});
+    fc.handleCommand({1, CommandType::TAKEOFF, 0, 10.0f});
+    for (int i = 0; i < 200; ++i) fc.update(0.1f);
+    ASSERT_EQ(fc.getState(), FlightState::FLYING);
+
+    fc.setBattery(3);
+    fc.update(0.1f); // one tick is enough to trigger the check
+
+    EXPECT_EQ(fc.getState(), FlightState::EMERGENCY);
+}

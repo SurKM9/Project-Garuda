@@ -73,6 +73,11 @@ void FlightController::update(float dt) {
             break;
 
         case FlightState::FLYING: {
+            if (m_battery < 5) {
+                m_currentState = FlightState::EMERGENCY;
+                std::cout << "[FlightController] Critical battery! Emergency stop initiated.\n";
+                break;
+            }
             if (m_battery < 15) {
                 m_currentState = FlightState::LANDING;
                 std::cout << "[FlightController] Low battery! Forced landing initiated.\n";

@@ -52,7 +52,7 @@ public:
     /**
      * @brief Returns the current battery level as a percentage (0–100).
      */
-    uint8_t getBattery() const {return m_battery;}
+    uint8_t getBattery() const;
 
     /**
      * @brief Overrides the battery level. Intended for use in unit tests only.
