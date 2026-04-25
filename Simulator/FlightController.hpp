@@ -67,6 +67,7 @@ private:
     float m_targetAltitude;
     uint8_t m_battery;
     float m_velocity;
+    float m_batteryDrainAccum;
 
     bool canArm() const;
     bool canTakeoff() const;

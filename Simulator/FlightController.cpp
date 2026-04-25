@@ -8,7 +8,8 @@ FlightController::FlightController() :
     m_altitude(0.0f),
     m_targetAltitude(0.0f),
     m_battery(100),
-    m_velocity(0.0f)
+    m_velocity(0.0f),
+    m_batteryDrainAccum(0.0f)
 {
 }
 
@@ -109,6 +110,25 @@ void FlightController::update(float dt) {
         default:
             thrust = 0.0f;
             break;
+    }
+
+    // Only drain when motors are actively spinning; IDLE/ARMED/EMERGENCY draw negligible current
+    if(m_currentState == FlightState::TAKEOFF ||
+        m_currentState == FlightState::FLYING ||
+        m_currentState == FlightState::LANDING)
+    {
+        // Base draw (avionics) + thrust-proportional draw (motor current scales with load)
+        m_batteryDrainAccum += (0.05f + 0.05f * thrust) * dt;
+
+        // Commit whole percent points only — m_battery is uint8_t and can't hold fractions
+        if(m_batteryDrainAccum >= 1.0f)
+        {
+            // Truncate to the integer part; remainder stays in accum so no drain is lost
+            uint8_t drop = static_cast<uint8_t>(m_batteryDrainAccum);
+            // Guard against underflow: uint8_t wraps around if subtracted below 0
+            m_battery = (m_battery > drop) ? m_battery - drop : 0;
+            m_batteryDrainAccum -= drop;
+        }
     }
 
     // Physics Engine Calculation
