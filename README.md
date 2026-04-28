@@ -54,7 +54,7 @@ The system supports two primary modes of operation. Port 5000 is used for Comman
 | **Yocto / QEMU** | SLIRP (NAT) | `10.0.2.2` | `10.0.2.15` |
 
 ### Install All Dependencies
-One-shot command to install the entire development environment on Ubuntu/Kubuntu:
+One-shot command to install the core development environment on Ubuntu/Kubuntu:
 
 ```zsh
 sudo apt update && sudo apt install -y \
@@ -64,8 +64,6 @@ sudo apt update && sudo apt install -y \
           qt6-declarative-dev \
           qt6-charts-dev \
           libqt6charts6-dev \
-          qt6-location-dev \
-          qt6-positioning-dev \
           libxkbcommon-dev \
           libgl1-mesa-dev \
           libvulkan-dev \
@@ -73,6 +71,11 @@ sudo apt update && sudo apt install -y \
           doxygen \
           graphviz
 ```
+
+> **Note:** `QtLocation` and `QtPositioning` (required for the map view in the Dashboard)
+> are **not available in Ubuntu's apt repositories**. Install them via the
+> [Qt Online Installer](https://www.qt.io/download-qt-installer) — select
+> **Qt 6.x → Qt Location** and **Qt Positioning** under the Desktop component.
 
 ## 🏗 Build Instructions
 
