@@ -5,6 +5,10 @@
 #include <fstream>
 #include <cstdint>
 #include <iostream>
+#include <dirent.h>
+#include <unistd.h>
+#include <climits>
+#include <cctype>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -22,14 +26,46 @@ struct GarudaConfig {
     uint16_t    command_port   = 5000;        ///< UDP port the Simulator listens on for commands
 };
 
-// Checks whether a QEMU TAP interface is active by looking for 192.168.7.1
-// assigned to any local network interface.
+// Returns true if a qemu-system-* process is currently running.
+inline bool isQemuRunning()
+{
+    DIR* dir = opendir("/proc");
+    if (!dir) return false;
+
+    bool found = false;
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        for (const char* c = entry->d_name; *c; ++c)
+            if (!std::isdigit(static_cast<unsigned char>(*c))) goto next_entry;
+
+        {
+            char exe_path[64];
+            char link_buf[PATH_MAX];
+            std::snprintf(exe_path, sizeof(exe_path), "/proc/%s/exe", entry->d_name);
+            ssize_t len = readlink(exe_path, link_buf, sizeof(link_buf) - 1);
+            if (len > 0) {
+                link_buf[len] = '\0';
+                if (std::string(link_buf).find("qemu-system") != std::string::npos) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        next_entry:;
+    }
+
+    closedir(dir);
+    return found;
+}
+
+// Returns true only when tap0 carries 192.168.7.1 AND a qemu-system-* process
+// is actually running — prevents leftover TAP interfaces from triggering QEMU mode.
 inline bool detectQemuTap()
 {
     struct ifaddrs* ifaddr = nullptr;
     if (getifaddrs(&ifaddr) == -1) return false;
 
-    bool found = false;
+    bool tap_found = false;
     for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
         if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET) continue;
 
@@ -38,13 +74,13 @@ inline bool detectQemuTap()
         inet_ntop(AF_INET, &sin->sin_addr, buf, sizeof(buf));
 
         if (std::string(buf) == "192.168.7.1") {
-            found = true;
+            tap_found = true;
             break;
         }
     }
 
     freeifaddrs(ifaddr);
-    return found;
+    return tap_found && isQemuRunning();
 }
 
 // Config resolution order:
