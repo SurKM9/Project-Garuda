@@ -57,28 +57,75 @@ Window {
                 }
             }
 
-            // Battery Gauge
+            // Battery Card
             Rectangle {
                 Layout.fillWidth: true
-                height: 80
-                color: "transparent"
+                height: 120
+                color: "#1e293b"
+                radius: 8
+                border.color: "#334155"
 
                 Column {
-                    width: parent.width
-                    spacing: 8
-                    Text { text: "BATTERY: " + (telemetry ? telemetry.battery : 0) + "%"; color: "white"; font.bold: true }
-                    ProgressBar {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: 16
+                    anchors.rightMargin: 16
+                    spacing: 10
+
+                    Text {
+                        text: "BATTERY"
+                        color: "#94a3b8"
+                        font.pixelSize: 12
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Text {
+                        text: telemetry.battery + "%"
+                        color: telemetry.battery < 20 ? "#ef4444" : "#22c55e"
+                        font.pixelSize: 24
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Rectangle {
                         width: parent.width
-                        value: telemetry.battery / 100
-                        background: Rectangle { color: "#334155"; radius: 4 }
-                        contentItem: Item {
-                            Rectangle {
-                                width: parent.width * parent.parent.value
-                                height: parent.height
-                                radius: 4
-                                color: telemetry.battery < 20 ? "#ef4444" : "#22c55e"
-                            }
+                        height: 8
+                        radius: 4
+                        color: "#334155"
+                        Rectangle {
+                            width: parent.width * (telemetry.battery / 100)
+                            height: parent.height
+                            radius: 4
+                            color: telemetry.battery < 20 ? "#ef4444" : "#22c55e"
                         }
+                    }
+                }
+            }
+
+            // Velocity Card
+            Rectangle {
+                Layout.fillWidth: true
+                height: 120
+                color: "#1e293b"
+                radius: 8
+                border.color: "#334155"
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 10
+                    Text {
+                        text: "VELOCITY"
+                        color: "#94a3b8"
+                        font.pixelSize: 12
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    Text {
+                        text: telemetry.velocity.toFixed(1) + " m/s"
+                        color: "#38bdf8"
+                        font.pixelSize: 24
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
                     }
                 }
             }
@@ -104,32 +151,38 @@ Window {
 
                 Button {
                     text: "ARM SYSTEM"
-                    Layout.fillWidth: true // Makes button take full width of column
+                    Layout.fillWidth: true
+                    enabled: telemetry.flightState === 0
+                    background: Rectangle { color: "#22c55e"; radius: 4 }
                     onClicked: telemetry.sendCommand(1)
                 }
 
                 Button {
                     text: "TAKEOFF"
                     Layout.fillWidth: true
-                    enabled: telemetry.flightState === 1 // Only enabled if ARMED
+                    enabled: telemetry.flightState === 1
                     onClicked: telemetry.sendCommand(3, 10.0)
                 }
 
                 Button {
                     text: "LAND"
                     Layout.fillWidth: true
+                    enabled: telemetry.flightState === 3
                     onClicked: telemetry.sendCommand(4)
                 }
 
                 Button {
                     text: "DISARM"
                     Layout.fillWidth: true
+                    enabled: telemetry.flightState === 1
                     onClicked: telemetry.sendCommand(2)
                 }
 
                 Button {
                     text: "EMERGENCY STOP"
                     Layout.fillWidth: true
+                    background: Rectangle { color: "#ef4444"; radius: 4 }
+                    enabled: telemetry.flightState > 0
                     onClicked: telemetry.sendCommand(99)
                 }
 
