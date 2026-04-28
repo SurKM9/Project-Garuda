@@ -64,6 +64,8 @@ sudo apt update && sudo apt install -y \
           qt6-declarative-dev \
           qt6-charts-dev \
           libqt6charts6-dev \
+          qt6-location-dev \
+          qt6-positioning-dev \
           libxkbcommon-dev \
           libgl1-mesa-dev \
           libvulkan-dev \
