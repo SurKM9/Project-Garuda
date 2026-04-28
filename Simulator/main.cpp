@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
         if (time_since_telemetry >= 100) {
             TelemetryPacket tx_packet;
             tx_packet.packet_id = packet_counter++;
-            tx_packet.latitude = 48.1351f;   // Fixed Munich coordinate for now
-            tx_packet.longitude = 11.5820f;
+            tx_packet.latitude = controller.getLatitude();
+            tx_packet.longitude = controller.getLongitude();
             tx_packet.altitude = controller.getAltitude();
             tx_packet.velocity = controller.getVelocity();
             tx_packet.battery_pct = controller.getBattery();

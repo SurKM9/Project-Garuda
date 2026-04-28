@@ -21,3 +21,9 @@ Thumbs.db
 
 # Local network config at project root (machine-specific, not for version control)
 /garuda.conf
+
+# Machine-specific CMake overrides (Qt install path, etc.)
+CMakeUserPresets.json
+
+# Qt Creator project files (machine-specific)
+.qtcreator/

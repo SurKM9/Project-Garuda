@@ -60,6 +60,18 @@ public:
      */
     void setBattery(uint8_t pct);
 
+    /**
+     * @brief getLatitude
+     * @return current latitude
+     */
+    double getLatitude() const;
+
+    /**
+     * @brief getLongitude
+     * @return current longitude
+     */
+    double getLongitude() const;
+
 private:
 
     FlightState m_currentState;
@@ -68,6 +80,8 @@ private:
     uint8_t m_battery;
     float m_velocity;
     float m_batteryDrainAccum;
+    double m_latitude;
+    double m_longitude;
 
     bool canArm() const;
     bool canTakeoff() const;

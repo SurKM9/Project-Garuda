@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts 1.15
 import QtCharts
+import QtLocation
+import QtPositioning
 
 Window {
     width: 900
@@ -14,8 +16,14 @@ Window {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "#1e293b" }
-            GradientStop { position: 1.0; color: "#0f172a" }
+            GradientStop {
+                position: 0.0
+                color: "#1e293b"
+            }
+            GradientStop {
+                position: 1.0
+                color: "#0f172a"
+            }
         }
     }
 
@@ -130,11 +138,14 @@ Window {
                 }
             }
 
-            Item { Layout.fillHeight: true } // Spacer            
+            Item {
+                Layout.fillHeight: true
+            } // Spacer
         }
 
         Rectangle {
             width: 200
+            Layout.fillHeight: true
             color: "#2c3e50"
 
             ColumnLayout {
@@ -153,7 +164,10 @@ Window {
                     text: "ARM SYSTEM"
                     Layout.fillWidth: true
                     enabled: telemetry.flightState === 0
-                    background: Rectangle { color: "#22c55e"; radius: 4 }
+                    background: Rectangle {
+                        color: "#22c55e"
+                        radius: 4
+                    }
                     onClicked: telemetry.sendCommand(1)
                 }
 
@@ -181,81 +195,154 @@ Window {
                 Button {
                     text: "EMERGENCY STOP"
                     Layout.fillWidth: true
-                    background: Rectangle { color: "#ef4444"; radius: 4 }
+                    background: Rectangle {
+                        color: "#ef4444"
+                        radius: 4
+                    }
                     enabled: telemetry.flightState > 0
                     onClicked: telemetry.sendCommand(99)
                 }
 
                 // Pushes everything to the top
-                Item { Layout.fillHeight: true }
+                Item {
+                    Layout.fillHeight: true
+                }
             }
         }
 
-        // --- RIGHT PANEL: REAL-TIME CHART ---
-        Rectangle {
-            // Explicitly tell the Layout how to handle this box
+        // --- RIGHT PANEL: MAP + CHART TABS ---
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumWidth: 500 // <--- Forces the chart to take at least this much space
+            Layout.minimumWidth: 500
+            spacing: 0
 
-            color: "#1e293b"
-            radius: 8
-            border.color: "#334155"
-            clip: true
-
-            ChartView {
-                id: altChart
-                anchors.fill: parent
-                anchors.margins: -10 // Pulls the chart to the edges of the rectangle
-                theme: ChartView.ChartThemeDark
-                backgroundColor: "transparent"
-                antialiasing: true
-                legend.visible: false
-
-                ValueAxis {
-                    id: axisY
-                    min: 0
-                    max: 15 // We'll update this dynamically
-                    titleText: "Altitude (m)"
+            TabBar {
+                id: tabBar
+                Layout.fillWidth: true
+                background: Rectangle {
+                    color: "#0f172a"
                 }
-
-                ValueAxis {
-                    id: axisX
-                    min: 0
-                    max: 15 // Show last 50 data points
-                    labelFormat: " " // Hide X labels for a cleaner look
+                TabButton {
+                    text: "MAP"
                 }
-
-                LineSeries {
-                    id: altSeries
-                    name: "Altitude"
-                    axisX: axisX
-                    axisY: axisY
-                    color: "#38bdf8" // Cyber Blue
-                    width: 3
+                TabButton {
+                    text: "CHART"
                 }
+            }
 
-                // Locate your ChartView and find the Connections block inside it
-                Connections {
-                    target: telemetry
+            StackLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                currentIndex: tabBar.currentIndex
 
-                    // Qt 6 style: use the 'on<SignalName>' syntax directly
-                    function onAltitudeChanged() {
-                        // Log to console once to verify the signal is actually arriving
-                        // console.log("New altitude received: " + telemetry.altitude)
+                Map {
+                    id: droneMap
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    plugin: Plugin {
+                        name: "osm"
+                        PluginParameter { name: "osm.mapping.custom.host"; value: "https://tile.openstreetmap.org/" }
+                        PluginParameter { name: "osm.mapping.custom.datacopyright"; value: "© OpenStreetMap contributors" }
+                        PluginParameter { name: "osm.useragent"; value: "ProjectGaruda/1.0" }
+                    }
+                    center: QtPositioning.coordinate(48.1351, 11.5820)
+                    zoomLevel: 14
 
-                        // 1. Append the data point (X = count, Y = value)
-                        altSeries.append(altSeries.count, telemetry.altitude);
+                    onMapReadyChanged: {
+                        if (mapReady) {
+                            for (var i = 0; i < supportedMapTypes.length; i++) {
+                                if (supportedMapTypes[i].name === "Custom URL Map") {
+                                    activeMapType = supportedMapTypes[i]
+                                    break
+                                }
+                            }
+                        }
+                    }
 
-                        // 2. Scroll the X-Axis if we have more than 50 points
-                        if (altSeries.count > 50) {
-                            axisX.min = altSeries.count - 50;
-                            axisX.max = altSeries.count;
+                    MapQuickItem {
+                        coordinate: QtPositioning.coordinate(telemetry.latitude, telemetry.longitude)
+                        anchorPoint.x: marker.width / 2
+                        anchorPoint.y: marker.height / 2
+                        sourceItem: Rectangle {
+                            id: marker
+                            width: 28; height: 28; radius: 14
+                            color: "#38bdf8"
+                            border.color: "white"; border.width: 3
+                        }
+                    }
+
+                    MapPolyline {
+                        id: flightPath
+                        line.width: 5
+                        line.color: "#38bdf8"
+                    }
+
+                    Connections {
+                        target: telemetry
+                        function onLatitudeChanged() {
+                            var coord = QtPositioning.coordinate(telemetry.latitude, telemetry.longitude)
+                            flightPath.addCoordinate(coord)
+                            droneMap.center = coord
+                        }
+                    }
+                }
+                Item {
+                    ChartView {
+                        id: altChart
+                        anchors.fill: parent
+                        anchors.margins: -10 // Pulls the chart to the edges of the rectangle
+                        theme: ChartView.ChartThemeDark
+                        backgroundColor: "transparent"
+                        antialiasing: true
+                        legend.visible: false
+
+                        ValueAxis {
+                            id: axisY
+                            min: 0
+                            max: 15 // We'll update this dynamically
+                            titleText: "Altitude (m)"
                         }
 
-                        // 3. Auto-scale the Y-Axis if the drone goes higher than the current view
-                        if (telemetry.altitude > axisY.max - 10) {
-                            axisY.max = telemetry.altitude + 20;
+                        ValueAxis {
+                            id: axisX
+                            min: 0
+                            max: 15 // Show last 50 data points
+                            labelFormat: " " // Hide X labels for a cleaner look
+                        }
+
+                        LineSeries {
+                            id: altSeries
+                            name: "Altitude"
+                            axisX: axisX
+                            axisY: axisY
+                            color: "#38bdf8" // Cyber Blue
+                            width: 3
+                        }
+
+                        // Locate your ChartView and find the Connections block inside it
+                        Connections {
+                            target: telemetry
+
+                            // Qt 6 style: use the 'on<SignalName>' syntax directly
+                            function onAltitudeChanged() {
+                                // Log to console once to verify the signal is actually arriving
+                                // console.log("New altitude received: " + telemetry.altitude)
+
+                                // 1. Append the data point (X = count, Y = value)
+                                altSeries.append(altSeries.count, telemetry.altitude);
+
+                                // 2. Scroll the X-Axis if we have more than 50 points
+                                if (altSeries.count > 50) {
+                                    axisX.min = altSeries.count - 50;
+                                    axisX.max = altSeries.count;
+                                }
+
+                                // 3. Auto-scale the Y-Axis if the drone goes higher than the current view
+                                if (telemetry.altitude > axisY.max - 10) {
+                                    axisY.max = telemetry.altitude + 20;
+                                }
+                            }
                         }
                     }
                 }

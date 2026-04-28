@@ -48,6 +48,18 @@ class TelemetryProvider : public QObject
      */
     Q_PROPERTY(int flightState READ flightState NOTIFY flightStateChanged)
 
+    /**
+     * @property TelemetryProvider::latitude
+     * @brief Current latitude value as degrees.
+     */
+    Q_PROPERTY(float latitude READ latitude NOTIFY latitudeChanged)
+
+    /**
+     * @property TelemetryProvider::longitude
+     * @brief Current longitude value as degrees.
+     */
+    Q_PROPERTY(float longitude READ longitude NOTIFY longitudeChanged)
+
 public:
     /**
      * @brief Constructs the TelemetryProvider and initialises internal state.
@@ -73,6 +85,18 @@ public:
      * @return Battery percentage as an int (0–100).
      */
     int battery() const { return m_data.battery_pct; }
+
+    /**
+     * @brief Returns the current latitude in degrees.
+     * @return latitude in degrees.
+     */
+    float latitude() const { return m_data.latitude; }
+
+    /**
+     * @brief Returns the current longitude in degrees.
+     * @return longitude in degrees.
+     */
+    float longitude() const { return m_data.longitude; }
 
     /**
      * @brief Sends a command packet to the Simulator over UDP.
@@ -136,6 +160,16 @@ signals:
      * @brief Emitted when the flight state changes in the latest telemetry packet.
      */
     void flightStateChanged();
+
+    /**
+     * @brief Emitted when latitude changes in the latest telemetry packet
+     */
+    void latitudeChanged();
+
+    /**
+     * @brief Emitted when longitude changes in the latest telemetry packet
+     */
+    void longitudeChanged();
 
 private:
 

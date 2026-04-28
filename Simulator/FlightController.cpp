@@ -9,7 +9,9 @@ FlightController::FlightController() :
     m_targetAltitude(0.0f),
     m_battery(100),
     m_velocity(0.0f),
-    m_batteryDrainAccum(0.0f)
+    m_batteryDrainAccum(0.0f),
+    m_latitude(48.1351),
+    m_longitude(11.5820)
 {
 }
 
@@ -84,6 +86,11 @@ void FlightController::update(float dt) {
                 std::cout << "[FlightController] Low battery! Forced landing initiated.\n";
                 break;
             }
+
+            const double h_speed = 10.0;
+            m_latitude  += (h_speed * dt) / 111000.0;
+            m_longitude += (h_speed * dt) / (111000.0 * std::cos(m_latitude * M_PI / 180.0));
+
             float alt_error = m_targetAltitude - m_altitude;
             thrust = GRAVITY + (alt_error * 2.0f) - (m_velocity * 1.5f);
             break;
@@ -166,6 +173,16 @@ uint8_t FlightController::getBattery() const
 void FlightController::setBattery(uint8_t pct)
 {
     m_battery = pct;
+}
+
+double FlightController::getLatitude() const
+{
+    return m_latitude;
+}
+
+double FlightController::getLongitude() const
+{
+    return m_longitude;
 }
 
 bool FlightController::canArm() const

@@ -1,6 +1,6 @@
 # 1. The 'find_package' MUST come before any 'qt_' commands
 # This tells CMake where Qt is and loads the 'qt_add_executable' macro
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Charts Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Charts Widgets Location Positioning)
 
 # 2. These are the engines that handle Signals/Slots and Resources
 set(CMAKE_AUTOMOC ON)
@@ -38,4 +38,6 @@ target_link_libraries(DashboardApp
         Qt6::Quick
         Qt6::Charts
         Qt6::Widgets
+        Qt6::Location
+        Qt6::Positioning
 )
