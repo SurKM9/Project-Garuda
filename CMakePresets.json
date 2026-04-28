@@ -1,0 +1,69 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 16, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "desktop-debug",
+      "displayName": "Desktop Debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/Desktop-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "desktop-release",
+      "displayName": "Desktop Release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/Desktop-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "simulator-only",
+      "displayName": "Simulator Only (no Qt)",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/Simulator-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_DASHBOARD": "OFF",
+        "BUILD_DOCS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "desktop-debug",
+      "displayName": "Build Desktop Debug",
+      "configurePreset": "desktop-debug"
+    },
+    {
+      "name": "desktop-release",
+      "displayName": "Build Desktop Release",
+      "configurePreset": "desktop-release"
+    },
+    {
+      "name": "simulator-only",
+      "displayName": "Build Simulator Only",
+      "configurePreset": "simulator-only"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "desktop-debug",
+      "displayName": "Run Tests (Debug)",
+      "configurePreset": "desktop-debug",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

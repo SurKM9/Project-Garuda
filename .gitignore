@@ -2,12 +2,14 @@
 build/
 bin/
 obj/
+.cache/
 
 # IDE files
 .vscode/
 .qtc_clangd/
 *.user
 *.swp
+compile_commands.json
 
 # Doxygen derived products (We host these differently!)
 html/

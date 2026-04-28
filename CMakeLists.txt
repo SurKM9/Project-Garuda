@@ -4,6 +4,16 @@ project(UAV_System_Suite VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Keep a symlink at the project root so clangd always finds the latest database
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            ${CMAKE_SOURCE_DIR}/compile_commands.json
+        ERROR_QUIET
+    )
+endif()
+
 # Define where our sub-projects are
 # Add a toggle option (default to ON for your local ThinkPad work)
 option(BUILD_DASHBOARD "Build the Qt Dashboard" ON)
