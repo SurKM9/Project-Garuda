@@ -32,45 +32,70 @@ public:
     void update(float dt);
 
     /**
-     * @brief getState
-     * @return
+     * @brief Returns the current FSM state.
+     * @return Current FlightState enum value.
      */
-    FlightState getState() const;
+    FlightState state() const;
 
     /**
-     * @brief getAltitude
-     * @return
+     * @brief Returns altitude above ground in metres.
+     * @return Altitude as a float.
      */
-    float getAltitude() const;
+    float altitude() const;
 
     /**
-     * @brief getVelocity
-     * @return
+     * @brief Returns vertical velocity in m/s (positive = climbing).
+     * @return Velocity as a float.
      */
-    float getVelocity() const;
+    float velocity() const;
 
     /**
-     * @brief Returns the current battery level as a percentage (0–100).
+     * @brief Returns remaining battery charge as a percentage (0–100).
+     * @return Battery percentage as a uint8_t.
      */
-    uint8_t getBattery() const;
+    uint8_t battery() const;
+
+    /**
+     * @brief Returns current latitude in decimal degrees.
+     * @return Latitude as a double.
+     */
+    double latitude() const;
+
+    /**
+     * @brief Returns current longitude in decimal degrees.
+     * @return Longitude as a double.
+     */
+    double longitude() const;
+
+    /**
+     * @brief Returns roll angle in degrees (positive = right wing down).
+     * @return Roll as a float.
+     */
+    float roll() const;
+
+    /**
+     * @brief Returns pitch angle in degrees (positive = nose up).
+     * @return Pitch as a float.
+     */
+    float pitch() const;
+
+    /**
+     * @brief Returns yaw/heading in degrees (0–360, clockwise from north).
+     * @return Yaw as a float.
+     */
+    float yaw() const;
+
+    /**
+     * @brief Returns battery voltage in volts (3.0V empty → 4.2V full).
+     * @return Voltage as a float.
+     */
+    float batteryVoltage() const;
 
     /**
      * @brief Overrides the battery level. Intended for use in unit tests only.
      * @param pct Battery percentage to set (0–100).
      */
     void setBattery(uint8_t pct);
-
-    /**
-     * @brief getLatitude
-     * @return current latitude
-     */
-    double getLatitude() const;
-
-    /**
-     * @brief getLongitude
-     * @return current longitude
-     */
-    double getLongitude() const;
 
 private:
 
@@ -82,6 +107,9 @@ private:
     float m_batteryDrainAccum;
     double m_latitude;
     double m_longitude;
+    float m_roll;
+    float m_pitch;
+    float m_yaw;
 
     bool canArm() const;
     bool canTakeoff() const;

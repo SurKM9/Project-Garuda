@@ -97,13 +97,17 @@ int main(int argc, char* argv[]) {
         if (time_since_telemetry >= 100) {
             TelemetryPacket tx_packet;
             tx_packet.packet_id = packet_counter++;
-            tx_packet.latitude = controller.getLatitude();
-            tx_packet.longitude = controller.getLongitude();
-            tx_packet.altitude = controller.getAltitude();
-            tx_packet.velocity = controller.getVelocity();
-            tx_packet.battery_pct = controller.getBattery();
-            tx_packet.flight_mode = 1;       // Manual
-            tx_packet.state = controller.getState();
+            tx_packet.latitude = controller.latitude();
+            tx_packet.longitude = controller.longitude();
+            tx_packet.altitude = controller.altitude();
+            tx_packet.velocity = controller.velocity();
+            tx_packet.battery_pct = controller.battery();
+            tx_packet.roll = controller.roll();
+            tx_packet.pitch = controller.pitch();
+            tx_packet.yaw = controller.yaw();
+            tx_packet.battery_voltage = controller.batteryVoltage();
+            tx_packet.flight_mode = FlightMode::MANUAL;
+            tx_packet.state = controller.state();
 
             sendto(sockfd, &tx_packet, sizeof(TelemetryPacket), 0,
                    (const struct sockaddr *)&cliaddr, sizeof(cliaddr));

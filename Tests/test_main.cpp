@@ -37,8 +37,8 @@ TEST(SafetyLogicTests, AltitudeNegativeCheck){
  */
 TEST(ProtocolTests, PacketSizeCheck) {
     // Current packet:
-    // uint32 (4) + 4x float (16) + uint8 (1) + uint8 (1) + uint8 (1) = 23 bytes
-    const size_t expected_size = 23;
+    // uint32 (4) + 8x float (32) + 3x uint8 (3) = 39 bytes
+    const size_t expected_size = 39;
 
     EXPECT_EQ(sizeof(TelemetryPacket), expected_size)
         << "CRITICAL: TelemetryPacket size mismatch! Network protocol will break.";

@@ -60,6 +60,36 @@ class TelemetryProvider : public QObject
      */
     Q_PROPERTY(float longitude READ longitude NOTIFY longitudeChanged)
 
+    /**
+     * @property TelemetryProvider::roll
+     * @brief Roll angle in degrees (positive = right wing down), updated at 10Hz.
+     */
+    Q_PROPERTY(float roll READ roll NOTIFY rollChanged)
+
+    /**
+     * @property TelemetryProvider::pitch
+     * @brief Pitch angle in degrees (positive = nose up), updated at 10Hz.
+     */
+    Q_PROPERTY(float pitch READ pitch NOTIFY pitchChanged)
+
+    /**
+     * @property TelemetryProvider::yaw
+     * @brief Yaw/heading in degrees (0–360, clockwise from north), updated at 10Hz.
+     */
+    Q_PROPERTY(float yaw READ yaw NOTIFY yawChanged)
+
+    /**
+     * @property TelemetryProvider::batteryVoltage
+     * @brief Battery cell voltage in volts (3.0V empty → 4.2V full), updated at 10Hz.
+     */
+    Q_PROPERTY(float batteryVoltage READ batteryVoltage NOTIFY batteryVoltageChanged)
+
+    /**
+     * @property TelemetryProvider::flightMode
+     * @brief Current autopilot control mode as an integer (maps to FlightMode enum).
+     */
+    Q_PROPERTY(int flightMode READ flightMode NOTIFY flightModeChanged)
+
 public:
     /**
      * @brief Constructs the TelemetryProvider and initialises internal state.
@@ -140,6 +170,36 @@ public:
      */
     int flightState() const;
 
+    /**
+     * @brief Returns roll angle in degrees (positive = right wing down).
+     * @return Roll as a float.
+     */
+    float roll() const { return m_data.roll; }
+
+    /**
+     * @brief Returns pitch angle in degrees (positive = nose up).
+     * @return Pitch as a float.
+     */
+    float pitch() const { return m_data.pitch; }
+
+    /**
+     * @brief Returns yaw/heading in degrees (0–360, clockwise from north).
+     * @return Yaw as a float.
+     */
+    float yaw() const { return m_data.yaw; }
+
+    /**
+     * @brief Returns battery voltage in volts (3.0V empty → 4.2V full).
+     * @return Voltage as a float.
+     */
+    float batteryVoltage() const { return m_data.battery_voltage; }
+
+    /**
+     * @brief Returns the current autopilot mode as an integer (maps to FlightMode enum).
+     * @return Flight mode as an int.
+     */
+    int flightMode() const { return static_cast<int>(m_data.flight_mode); }
+
 signals:
     /**
      * @brief Emitted when the altitude value changes in the latest telemetry packet.
@@ -170,6 +230,31 @@ signals:
      * @brief Emitted when longitude changes in the latest telemetry packet
      */
     void longitudeChanged();
+
+    /**
+     * @brief Emitted when roll angle changes in the latest telemetry packet.
+     */
+    void rollChanged();
+
+    /**
+     * @brief Emitted when pitch angle changes in the latest telemetry packet.
+     */
+    void pitchChanged();
+
+    /**
+     * @brief Emitted when yaw/heading changes in the latest telemetry packet.
+     */
+    void yawChanged();
+
+    /**
+     * @brief Emitted when battery voltage changes in the latest telemetry packet.
+     */
+    void batteryVoltageChanged();
+
+    /**
+     * @brief Emitted when the autopilot flight mode changes in the latest telemetry packet.
+     */
+    void flightModeChanged();
 
 private:
 

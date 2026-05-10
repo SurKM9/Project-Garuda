@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include "FlightController.hpp"
@@ -11,7 +12,10 @@ FlightController::FlightController() :
     m_velocity(0.0f),
     m_batteryDrainAccum(0.0f),
     m_latitude(48.1351),
-    m_longitude(11.5820)
+    m_longitude(11.5820),
+    m_roll(0.0f),
+    m_pitch(0.0f),
+    m_yaw(0.0f)
 {
 }
 
@@ -148,24 +152,29 @@ void FlightController::update(float dt) {
         m_altitude = 0.0f;
         m_velocity = 0.0f;
     }
+
+    m_pitch=std::clamp(m_velocity*5.0f,-30.0f,30.0f);
+    if(m_currentState==FlightState::FLYING){
+        m_yaw=std::fmod(m_yaw+5.0f*dt,360.0f);
+    }
 }
 
-FlightState FlightController::getState() const
+FlightState FlightController::state() const
 {
     return m_currentState;
 }
 
-float FlightController::getAltitude() const
+float FlightController::altitude() const
 {
     return m_altitude;
 }
 
-float FlightController::getVelocity() const
+float FlightController::velocity() const
 {
     return m_velocity;
 }
 
-uint8_t FlightController::getBattery() const
+uint8_t FlightController::battery() const
 {
     return m_battery;
 }
@@ -175,14 +184,34 @@ void FlightController::setBattery(uint8_t pct)
     m_battery = pct;
 }
 
-double FlightController::getLatitude() const
+double FlightController::latitude() const
 {
     return m_latitude;
 }
 
-double FlightController::getLongitude() const
+double FlightController::longitude() const
 {
     return m_longitude;
+}
+
+float FlightController::roll() const
+{
+    return m_roll;
+}
+
+float FlightController::pitch() const
+{
+    return m_pitch;
+}
+
+float FlightController::yaw() const
+{
+    return m_yaw;
+}
+
+float FlightController::batteryVoltage() const
+{
+    return 3.0f + (m_battery / 100.0f) * 1.2f;
 }
 
 bool FlightController::canArm() const

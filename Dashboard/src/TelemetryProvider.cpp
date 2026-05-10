@@ -64,6 +64,11 @@ void TelemetryProvider::runReceiver() {
             bool stateChanged = (m_data.state != buffer.state);
             bool latChanged = (m_data.latitude != buffer.latitude);
             bool lonChanged = (m_data.longitude != buffer.longitude);
+            bool rollUpdated = (m_data.roll != buffer.roll);
+            bool pitchUpdated = (m_data.pitch != buffer.pitch);
+            bool yawUpdated = (m_data.yaw != buffer.yaw);
+            bool voltChanged = (m_data.battery_voltage != buffer.battery_voltage);
+            bool modeChanged = (m_data.flight_mode != buffer.flight_mode);
 
             // Update the internal data model
             m_data = buffer;
@@ -75,6 +80,11 @@ void TelemetryProvider::runReceiver() {
             if (stateChanged) emit flightStateChanged();
             if (latChanged) emit latitudeChanged();
             if (lonChanged) emit longitudeChanged();
+            if (rollUpdated) emit rollChanged();
+            if (pitchUpdated) emit pitchChanged();
+            if (yawUpdated)   emit yawChanged();
+            if (voltChanged) emit batteryVoltageChanged();
+            if (modeChanged) emit flightModeChanged();
 
         } else if (n > 0) {
             std::cout << "[Dashboard] Warning: Received packet of unexpected size: " << n << std::endl;
