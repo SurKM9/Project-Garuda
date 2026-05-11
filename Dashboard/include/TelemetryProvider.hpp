@@ -9,8 +9,8 @@
 #include <QObject>
 #include <QThread>
 #include <atomic>
-#include <mutex>
 #include "TelemetryData.hpp"
+#include "SpscQueue.hpp"
 
 /**
  * @class TelemetryProvider
@@ -102,31 +102,31 @@ public:
      * @brief Returns the current altitude of the UAV in metres.
      * @return Current altitude as a float.
      */
-    float altitude() const { return m_data.altitude; }
+    float altitude() const { return m_latest.altitude; }
 
     /**
      * @brief Returns the current vertical velocity of the UAV in m/s.
      * @return Current velocity as a float.
      */
-    float velocity() const { return m_data.velocity; }
+    float velocity() const { return m_latest.velocity; }
 
     /**
      * @brief Returns the current battery level as a percentage.
      * @return Battery percentage as an int (0–100).
      */
-    int battery() const { return m_data.battery_pct; }
+    int battery() const { return m_latest.battery_pct; }
 
     /**
      * @brief Returns the current latitude in degrees.
      * @return latitude in degrees.
      */
-    float latitude() const { return m_data.latitude; }
+    float latitude() const { return m_latest.latitude; }
 
     /**
      * @brief Returns the current longitude in degrees.
      * @return longitude in degrees.
      */
-    float longitude() const { return m_data.longitude; }
+    float longitude() const { return m_latest.longitude; }
 
     /**
      * @brief Sends a command packet to the Simulator over UDP.
@@ -174,31 +174,31 @@ public:
      * @brief Returns roll angle in degrees (positive = right wing down).
      * @return Roll as a float.
      */
-    float roll() const { return m_data.roll; }
+    float roll() const { return m_latest.roll; }
 
     /**
      * @brief Returns pitch angle in degrees (positive = nose up).
      * @return Pitch as a float.
      */
-    float pitch() const { return m_data.pitch; }
+    float pitch() const { return m_latest.pitch; }
 
     /**
      * @brief Returns yaw/heading in degrees (0–360, clockwise from north).
      * @return Yaw as a float.
      */
-    float yaw() const { return m_data.yaw; }
+    float yaw() const { return m_latest.yaw; }
 
     /**
      * @brief Returns battery voltage in volts (3.0V empty → 4.2V full).
      * @return Voltage as a float.
      */
-    float batteryVoltage() const { return m_data.battery_voltage; }
+    float batteryVoltage() const { return m_latest.battery_voltage; }
 
     /**
      * @brief Returns the current autopilot mode as an integer (maps to FlightMode enum).
      * @return Flight mode as an int.
      */
-    int flightMode() const { return static_cast<int>(m_data.flight_mode); }
+    int flightMode() const { return static_cast<int>(m_latest.flight_mode); }
 
 signals:
     /**
@@ -256,21 +256,30 @@ signals:
      */
     void flightModeChanged();
 
+private slots:
+
+    /**
+     * @brief Drains the SPSC queue on the Qt main thread and emits change signals.
+     *
+     * Called via QMetaObject::invokeMethod (QueuedConnection) from the worker thread
+     * each time a packet is pushed. Runs entirely on the Qt main thread — no mutex needed.
+     */
+    void processQueue();
+
 private:
 
     /**
      * @brief Entry point for the background worker thread. Blocks on UDP recvfrom.
      */
-    void runReceiver();
+    void runReceiver();    
 
-    TelemetryPacket      m_data;
-    std::mutex           m_mutex;
-    std::atomic<bool>    m_running{false};
-    std::thread          m_workerThread;
-    int                  m_flightState;
-    std::string          m_droneIp{"127.0.0.1"};
-    uint16_t             m_commandPort{5000};
-    uint16_t             m_telemetryPort{5001};
+    TelemetryPacket                 m_latest;
+    SpscQueue<TelemetryPacket, 4>   m_queue;
+    std::atomic<bool>               m_running{false};
+    std::thread                     m_workerThread;
+    std::string                     m_droneIp{"127.0.0.1"};
+    uint16_t                        m_commandPort{5000};
+    uint16_t                        m_telemetryPort{5001};
 };
 
 #endif // TELEMETRYPROVIDER_HPP

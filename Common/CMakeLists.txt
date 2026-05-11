@@ -9,4 +9,5 @@ target_include_directories(UAV_Common INTERFACE
 add_custom_target(UAV_Common_Headers SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/TelemetryData.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/GarudaConfig.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/SpscQueue.hpp
 )

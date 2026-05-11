@@ -55,39 +55,9 @@ void TelemetryProvider::runReceiver() {
         // If recvfrom timed out, n will be -1.
         // The loop will simply restart and check m_running
         if (n == sizeof(TelemetryPacket)) {
-            std::lock_guard<std::mutex> lock(m_mutex);
-
-            // 4. Check for changes to avoid unnecessary UI refreshes
-            bool altChanged = (m_data.altitude != buffer.altitude);
-            bool velChanged = (m_data.velocity != buffer.velocity);
-            bool batChanged = (m_data.battery_pct != buffer.battery_pct);
-            bool stateChanged = (m_data.state != buffer.state);
-            bool latChanged = (m_data.latitude != buffer.latitude);
-            bool lonChanged = (m_data.longitude != buffer.longitude);
-            bool rollUpdated = (m_data.roll != buffer.roll);
-            bool pitchUpdated = (m_data.pitch != buffer.pitch);
-            bool yawUpdated = (m_data.yaw != buffer.yaw);
-            bool voltChanged = (m_data.battery_voltage != buffer.battery_voltage);
-            bool modeChanged = (m_data.flight_mode != buffer.flight_mode);
-
-            // Update the internal data model
-            m_data = buffer;
-
-            // 5. Emit signals (This wakes up the QML UI)
-            if (altChanged) emit altitudeChanged();
-            if (velChanged) emit velocityChanged();
-            if (batChanged) emit batteryChanged();
-            if (stateChanged) emit flightStateChanged();
-            if (latChanged) emit latitudeChanged();
-            if (lonChanged) emit longitudeChanged();
-            if (rollUpdated) emit rollChanged();
-            if (pitchUpdated) emit pitchChanged();
-            if (yawUpdated)   emit yawChanged();
-            if (voltChanged) emit batteryVoltageChanged();
-            if (modeChanged) emit flightModeChanged();
-
-        } else if (n > 0) {
-            std::cout << "[Dashboard] Warning: Received packet of unexpected size: " << n << std::endl;
+            m_queue.push(buffer);
+            // Ask the Qt main thread to drain the queue - QueuedConnection crosses the thread boundary
+            QMetaObject::invokeMethod(this, "processQueue", Qt::QueuedConnection);
         }
     }
     close(sockfd);
@@ -115,5 +85,40 @@ void TelemetryProvider::sendCommand(int type, float param) {
 
 int TelemetryProvider::flightState() const
 {
-    return static_cast<int>(m_data.state);
+    return static_cast<int>(m_latest.state);
+}
+
+void TelemetryProvider::processQueue()
+{
+    TelemetryPacket incoming;
+
+    // drain all available packets - keep only the latest if multiple arrived between ticks
+    while(m_queue.pop(incoming))
+    {
+        bool altChanged = (m_latest.altitude != incoming.altitude);
+        bool velChanged = (m_latest.velocity != incoming.velocity);
+        bool batChanged = (m_latest.battery_pct != incoming.battery_pct);
+        bool stateChanged = (m_latest.state != incoming.state);
+        bool latChanged = (m_latest.latitude != incoming.latitude);
+        bool lonChanged = (m_latest.longitude != incoming.longitude);
+        bool rollUpdated = (m_latest.roll != incoming.roll);
+        bool pitchUpdated = (m_latest.pitch != incoming.pitch);
+        bool yawUpdated = (m_latest.yaw != incoming.yaw);
+        bool voltChanged = (m_latest.battery_voltage != incoming.battery_voltage);
+        bool modeChanged = (m_latest.flight_mode != incoming.flight_mode);
+
+        m_latest = incoming;
+
+        if (altChanged) emit altitudeChanged();
+        if (velChanged) emit velocityChanged();
+        if (batChanged) emit batteryChanged();
+        if (stateChanged) emit flightStateChanged();
+        if (latChanged) emit latitudeChanged();
+        if (lonChanged) emit longitudeChanged();
+        if (rollUpdated) emit rollChanged();
+        if (pitchUpdated) emit pitchChanged();
+        if (yawUpdated) emit yawChanged();
+        if (voltChanged) emit batteryVoltageChanged();
+        if (modeChanged) emit flightModeChanged();
+    }
 }
