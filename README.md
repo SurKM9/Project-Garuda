@@ -2,7 +2,7 @@
 
 [![Project Garuda CI](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml)
 
-A high-performance, real-time Distributed System designed for Unmanned Aerial Vehicle (UAV) ground control. This suite features a simulated drone flight engine running on Custom Embedded Linux (Yocto Project) and a modern graphical dashboard, communicating via a low-latency UDP protocol.
+A high-performance, real-time UAV ground control suite. Features a simulated drone flight engine running on Custom Embedded Linux (Yocto Project) and a modern Qt 6 dashboard, communicating over a low-latency UDP protocol.
 
 ![Project Garuda Preview](./assets/preview.gif)
 ![Project Garuda Structure](./assets/architecture.png)
@@ -13,9 +13,9 @@ A high-performance, real-time Distributed System designed for Unmanned Aerial Ve
 Project Garuda demonstrates the integration of low-level Linux systems programming with high-level data visualization. It solves the core challenges of modern robotics: handling asynchronous network data without blocking the user interface or sacrificing performance.
 
 ### The System at a Glance:
-* **UAV Simulator:** A headless C++ service that simulates flight physics and transmits data at 10Hz using raw UDP sockets.
-* **GCS Dashboard:** A multi-threaded Qt 6 application that visualizes telemetry trends and provides a Command & Control (C2) interface.
-* **The Bridge:** A thread-safe C++ provider using Mutexes and Atomic flags to move data from network sockets to the QML engine safely.
+* **UAV Simulator:** A headless C++ service that simulates flight physics (altitude, velocity, attitude) and transmits rich telemetry at 10Hz over raw UDP sockets.
+* **GCS Dashboard:** A multi-threaded Qt 6 application with real-time charts, a GPS map view, and an attitude indicator for live roll/pitch visualisation.
+* **The Bridge:** A lock-free `SpscQueue<TelemetryPacket, 4>` (single-producer single-consumer ring buffer) moves packets from the network thread to the Qt main thread with zero mutex contention.
 
 ---
 
@@ -26,7 +26,7 @@ Project Garuda demonstrates the integration of low-level Linux systems programmi
 | **Language** | C++20 |
 | **Framework** | Qt 6.6+ (Quick, Charts, Controls, Widgets) |
 | **Networking** | BSD Raw Sockets (UDP / Non-blocking) |
-| **Concurrency** | `std::thread`, `std::mutex`, `std::atomic` |
+| **Concurrency** | `std::thread`, lock-free SPSC ring buffer, `std::atomic` |
 | **Build System** | CMake |
 | **Environment** | Linux (Tested on Kubuntu 24.04 / Clang 18) |
 
@@ -36,9 +36,9 @@ Project Garuda demonstrates the integration of low-level Linux systems programmi
 
 The project is structured into three distinct modules to ensure a clean separation of concerns:
 
-1.  **`UAV_Common`**: The "Contract." Contains memory-packed binary structures (`TelemetryPacket` and `CommandPacket`) to ensure bit-perfect compatibility between the Simulator and the Dashboard. Also provides `GarudaConfig`, a shared header-only config loader that resolves network settings from `/etc/garuda/garuda.conf`, a local `garuda.conf`, QEMU TAP auto-detection, or localhost defaults — in that order.
-2.  **`Simulator`**: The "Drone." Manages the flight state machine and an asynchronous command listener. Implements graceful shutdown via Linux signal handling.
-3.  **`Dashboard`**: The "Ground Control." Uses a dedicated background worker thread for networking to maintain a responsive 60FPS UI.
+1.  **`UAV_Common`**: The "Contract." Contains `TelemetryPacket` (altitude, velocity, roll, pitch, yaw, battery voltage, GPS, flight mode — 39 bytes, enforced by `static_assert`) and `CommandPacket`. Also provides `GarudaConfig`, a header-only config loader that resolves network settings from `/etc/garuda/garuda.conf`, a local `garuda.conf`, QEMU TAP auto-detection, or localhost defaults — in that order. Houses the lock-free `SpscQueue<T, N>` template.
+2.  **`Simulator`**: The "Drone." Manages a 6-state flight FSM (IDLE → ARMED → TAKEOFF → FLYING → LANDING → EMERGENCY), a physics engine, and simulates attitude (pitch proportional to climb rate, yaw incrementing during flight). Validated by 22 GoogleTest unit tests.
+3.  **`Dashboard`**: The "Ground Control." Background `std::thread` pushes packets into an SPSC queue; the Qt main thread drains it via `QMetaObject::invokeMethod`. UI includes real-time altitude chart, GPS map with flight path trail, and an attitude indicator (artificial horizon).
 4.  **`meta-garuda`**: The Yocto Layer. Contains the BitBake recipes and configurations to build the Flight Controller into a production-ready Linux image.
 
 ---
@@ -121,10 +121,13 @@ A CLI argument overrides auto-detection for one-off use:
 
 ## 📈 Key Features
 
-* **Real-time Data Visualization:** Dynamic, auto-scaling line charts using Qt Charts for altitude history.
-* **Bi-Directional Communication:** Full-duplex UDP link for telemetry downlink (Port 5001) and command uplink (Port 5000).
-* **Thread Safety:** Robust data protection using `std::lock_guard` to prevent race conditions.
-* **Resource Management:** Follows RAII principles and controlled object destruction order.
+* **Rich Telemetry:** `TelemetryPacket` carries altitude, velocity, GPS, roll, pitch, yaw, battery percentage, battery voltage, flight mode, and flight state — layout enforced at compile time with `static_assert`.
+* **Lock-Free Concurrency:** A custom `SpscQueue<TelemetryPacket, 4>` replaces `std::mutex` in the telemetry pipeline — the network thread pushes, the Qt main thread pops, with no locks.
+* **Attitude Indicator:** Artificial horizon rendered on a QML `Canvas` — horizon rotates with roll, shifts vertically with pitch.
+* **GPS Map View:** Live drone position on an OpenStreetMap tile layer with a real-time flight path polyline.
+* **Real-time Charts:** Auto-scrolling, auto-scaling altitude history chart via Qt Charts.
+* **Bi-Directional Control:** Full-duplex UDP link — telemetry downlink on port 5001, command uplink on port 5000.
+* **Flight Safety Logic:** Low-battery forced landing, critical-battery emergency stop, mid-air disarm rejection — all covered by 22 unit tests.
 
 ---
 

@@ -21,6 +21,7 @@ qt_add_qml_module(DashboardApp
     VERSION 1.0
     QML_FILES
         qml/Main.qml
+        qml/AttitudeIndicator.qml
 )
 
 # 5. This tells the compiler WHERE to look

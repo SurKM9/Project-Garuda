@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import QtCharts
 import QtLocation
 import QtPositioning
+import "."
 
 Window {
     width: 900
@@ -134,6 +135,36 @@ Window {
                         font.pixelSize: 24
                         font.bold: true
                         anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
+
+            // Attitude Indicator Card
+            Rectangle {
+                Layout.fillWidth: true
+                height: 220
+                color: "#1e293b"
+                radius: 8
+                border.color: "#334155"
+
+                Column {
+                    anchors.centerIn:  parent
+                    spacing: 8
+
+                    Text {
+                        text: "ATTITUDE"
+                        color: "#94a3b8"
+                        font.pixelSize: 12
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    AttitudeIndicator {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: 180
+                        height: 180
+                        roll: telemetry.roll
+                        pitch: telemetry.pitch
                     }
                 }
             }
