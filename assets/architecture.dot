@@ -1,0 +1,158 @@
+digraph garuda {
+    graph [
+        bgcolor="#0f172a"
+        fontname="Helvetica"
+        fontcolor="#94a3b8"
+        rankdir=LR
+        compound=true
+        newrank=true
+        pad=0.5
+        nodesep=0.4
+        ranksep=1.2
+        label="Project Garuda — System Architecture"
+        labelloc=b
+        fontsize=11
+        splines=polyline
+    ]
+
+    node [
+        fontname="Helvetica"
+        fontcolor="white"
+        style="filled,rounded"
+        shape=box
+        margin="0.2,0.15"
+        fontsize=9
+    ]
+
+    edge [
+        fontname="Helvetica"
+        fontsize=8
+        penwidth=1.6
+    ]
+
+    // ── HOST MACHINE ─────────────────────────────
+    subgraph cluster_host {
+        label="HOST MACHINE  (Kubuntu)"
+        style="filled,rounded"
+        fillcolor="#1a2744"
+        color="#38bdf8"
+        fontcolor="#38bdf8"
+        fontsize=10
+
+        // GarudaConfig
+        config [
+            label="GarudaConfig\n──────────────────\n1. /etc/garuda/garuda.conf\n2. ./garuda.conf\n3. QEMU TAP auto-detect\n4. localhost defaults"
+            fillcolor="#1e1040" color="#a78bfa" fontcolor="#a78bfa"
+        ]
+
+        subgraph cluster_sim {
+            label="DRONE SIMULATOR"
+            style="filled,rounded"
+            fillcolor="#2d1a06"
+            color="#f97316"
+            fontcolor="#f97316"
+            fontsize=10
+
+            fsm [
+                label="FlightController FSM\n──────────────────\nIDLE→ARMED→TAKEOFF\nFLYING→LANDING→EMERGENCY\n\nphysics: thrust / gravity\nPD altitude hold\nbattery drain model"
+                fillcolor="#1a0e04" color="#f97316" fontcolor="#f97316"
+            ]
+            attitude [
+                label="Attitude Simulation\n──────────────────\npitch = clamp(vel×5, ±30°)\nyaw += 5°/s  in FLYING\nvoltage = 3.0 + pct×1.2 V"
+                fillcolor="#1a0e04" color="#64748b"
+            ]
+            udp_tx [
+                label="UDP Sender\n──────────────────\nsendto() → GCS :5001\n@ 10 Hz\nTelemetryPacket 39 bytes"
+                fillcolor="#1a0e04" color="#64748b"
+            ]
+            fsm -> attitude [color="#64748b"]
+            attitude -> udp_tx [color="#64748b"]
+        }
+
+        subgraph cluster_dashboard {
+            label="Qt GCS DASHBOARD"
+            style="filled,rounded"
+            fillcolor="#0f1f3d"
+            color="#38bdf8"
+            fontcolor="#38bdf8"
+            fontsize=10
+
+            worker [
+                label="Worker Thread\n──────────────────\nrecvfrom() UDP :5001\n500 ms socket timeout"
+                fillcolor="#0a1628" color="#64748b"
+            ]
+            spsc [
+                label="SpscQueue\<TelemetryPacket,4\>\n──────────────────\nLock-free ring buffer\npush() — worker thread\npop()  — Qt main thread\nacquire/release ordering"
+                fillcolor="#0a1628" color="#22c55e" fontcolor="#22c55e"
+            ]
+            qtmain [
+                label="Qt Main Thread\n──────────────────\nprocessQueue() slot\ndiffs m_latest fields\nemits Q_PROPERTY signals\nno mutex — single owner"
+                fillcolor="#0a1628" color="#38bdf8"
+            ]
+            ui [
+                label="QML UI\n──────────────────\n▸ Altitude chart (auto-scroll)\n▸ GPS map + flight path\n▸ Attitude indicator\n▸ Battery / velocity cards\n▸ Flight control buttons"
+                fillcolor="#0a1628" color="#64748b"
+            ]
+            worker -> spsc  [label=" push()" color="#22c55e" fontcolor="#22c55e"]
+            spsc  -> qtmain [label=" pop()" color="#22c55e" fontcolor="#22c55e"]
+            qtmain -> ui    [label=" signals" color="#94a3b8" fontcolor="#94a3b8"]
+        }
+
+        config -> fsm    [style=dashed color="#a78bfa" fontcolor="#a78bfa" arrowhead=none]
+        config -> worker [style=dashed color="#a78bfa" arrowhead=none]
+    }
+
+    // ── NETWORK BRIDGE ───────────────────────────
+    subgraph cluster_bridge {
+        label="VIRTUAL NETWORK BRIDGE  (QEMU)"
+        style="filled,rounded"
+        fillcolor="#1e293b"
+        color="#475569"
+        fontcolor="#94a3b8"
+        fontsize=10
+
+        telem_chan [
+            label="TELEMETRY\nUDP :5001\n39 bytes @ 10 Hz"
+            fillcolor="#0f2818" color="#22c55e" fontcolor="#22c55e"
+            width=1.6
+        ]
+        cmd_chan [
+            label="COMMANDS\nUDP :5000\nCommandPacket"
+            fillcolor="#0f1f38" color="#38bdf8" fontcolor="#38bdf8"
+            width=1.6
+        ]
+    }
+
+    // ── GUEST MACHINE ────────────────────────────
+    subgraph cluster_guest {
+        label="GUEST MACHINE  (QEMU Drone)"
+        style="filled,rounded"
+        fillcolor="#0d2218"
+        color="#22c55e"
+        fontcolor="#22c55e"
+        fontsize=10
+
+        fc_guest [
+            label="FLIGHT CONTROLLER\n──────────────────\nGaruda Application Binary\nFlightController FSM • 10 Hz\n22 GoogleTest unit tests\nnon-blocking command socket"
+            fillcolor="#061a10" color="#22c55e" fontcolor="#22c55e"
+        ]
+        yocto [
+            label="YOCTO LINUX  (scarthgap)\n──────────────────\nmeta-garuda  priority 6\ngaruda-fc.bb  recipe\ngaruda.conf → /etc/garuda/\nlaunch-drone.sh"
+            fillcolor="#061a10" color="#4ade80" fontcolor="#4ade80"
+        ]
+        kernel [
+            label="LINUX KERNEL\nx86_64 — QEMU emulated\nqemux86-64 machine"
+            fillcolor="#061a10" color="#64748b"
+        ]
+        fc_guest -> yocto  [style=invis]
+        yocto   -> kernel  [style=invis]
+    }
+
+    // ── CROSS-CLUSTER EDGES ──────────────────────
+    udp_tx    -> telem_chan [label="TelemetryPacket" color="#22c55e" fontcolor="#22c55e" ltail=cluster_sim]
+    telem_chan -> worker    [color="#22c55e" lhead=cluster_dashboard]
+    fc_guest  -> telem_chan [color="#22c55e"]
+
+    qtmain    -> cmd_chan   [label="CommandPacket" color="#38bdf8" fontcolor="#38bdf8" style=dashed]
+    cmd_chan   -> fc_guest  [color="#38bdf8" style=dashed]
+}
