@@ -92,8 +92,9 @@ void FlightController::update(float dt) {
             }
 
             const double h_speed = 10.0;
-            m_latitude  += (h_speed * dt) / 111000.0;
-            m_longitude += (h_speed * dt) / (111000.0 * std::cos(m_latitude * M_PI / 180.0));
+            double heading_rad = CRUISE_HEADING * M_PI / 180.0;
+            m_latitude += (h_speed * std::cos(heading_rad) * dt) / 111000.0;
+            m_longitude += (h_speed * std::sin(heading_rad) * dt) / (111000.0 * std::cos(m_latitude * M_PI / 180.0));
 
             float alt_error = m_targetAltitude - m_altitude;
             thrust = GRAVITY + (alt_error * 2.0f) - (m_velocity * 1.5f);
@@ -155,7 +156,7 @@ void FlightController::update(float dt) {
 
     m_pitch=std::clamp(m_velocity*5.0f,-30.0f,30.0f);
     if(m_currentState==FlightState::FLYING){
-        m_yaw=std::fmod(m_yaw+5.0f*dt,360.0f);
+        m_yaw = CRUISE_HEADING;
     }
 }
 

@@ -232,6 +232,11 @@ signals:
     void longitudeChanged();
 
     /**
+     * @brief Emitted when either latitude or longitude changes — to update map position.
+     */
+    void positionChanged();
+
+    /**
      * @brief Emitted when roll angle changes in the latest telemetry packet.
      */
     void rollChanged();

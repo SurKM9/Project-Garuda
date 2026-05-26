@@ -3,7 +3,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <iostream>
 #include <QDebug>
 
 TelemetryProvider::TelemetryProvider(QObject *parent) : QObject(parent) {}
@@ -115,6 +114,7 @@ void TelemetryProvider::processQueue()
         if (stateChanged) emit flightStateChanged();
         if (latChanged) emit latitudeChanged();
         if (lonChanged) emit longitudeChanged();
+        if (latChanged || lonChanged) emit positionChanged();
         if (rollUpdated) emit rollChanged();
         if (pitchUpdated) emit pitchChanged();
         if (yawUpdated) emit yawChanged();

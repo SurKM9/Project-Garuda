@@ -22,6 +22,7 @@ qt_add_qml_module(DashboardApp
     QML_FILES
         qml/Main.qml
         qml/AttitudeIndicator.qml
+        qml/CompassRose.qml
 )
 
 # 5. This tells the compiler WHERE to look

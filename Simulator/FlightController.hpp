@@ -110,6 +110,7 @@ private:
     float m_roll;
     float m_pitch;
     float m_yaw;
+    static constexpr float CRUISE_HEADING = 90.0f;
 
     bool canArm() const;
     bool canTakeoff() const;

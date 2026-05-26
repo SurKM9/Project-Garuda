@@ -204,12 +204,12 @@ TEST(FlightLogic, CriticalBatteryForceEmergency)
     EXPECT_EQ(fc.state(), FlightState::EMERGENCY);
 }
 
-TEST(TelemetryFields,RollIsZeroOnGround){
+TEST(TelemetryFields, RollIsZeroOnGround){
     FlightController fc;
     EXPECT_NEAR(fc.roll(),0.0f,0.001f);
 }
 
-TEST(TelemetryFields,PitchPositiveDuringClimb){
+TEST(TelemetryFields, PitchPositiveDuringClimb){
     FlightController fc;
     fc.handleCommand({0,CommandType::ARM,0,0.0f});
     fc.handleCommand({1, CommandType::TAKEOFF, 0, 10.0f});
@@ -217,16 +217,15 @@ TEST(TelemetryFields,PitchPositiveDuringClimb){
     EXPECT_GT(fc.pitch(), 0.0f);
 }
 
-TEST(TelemetryFields,YawIncrementsDuringFlight){
+TEST(TelemetryFields, YawHoldsCruiseHeadingDuringFlight){
     FlightController fc;
     fc.handleCommand({0,CommandType::ARM,0,0.0f});
     fc.handleCommand({1,CommandType::TAKEOFF,0,10.0f});
     for (int i = 0; i < 200; ++i) fc.update(0.1f);
     ASSERT_EQ(fc.state(),FlightState::FLYING);
 
-    float yawBefore=fc.yaw();
     fc.update(1.0f);
-    EXPECT_GT(fc.yaw(),yawBefore);
+    EXPECT_FLOAT_EQ(fc.yaw(), 90.0f);
 }
 
 TEST(TelemetryFields,BatteryVoltageAtFullCharge){

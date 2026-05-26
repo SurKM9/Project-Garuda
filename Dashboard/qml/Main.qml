@@ -169,6 +169,36 @@ Window {
                 }
             }
 
+            // CompassRose card
+            Rectangle {
+                Layout.fillWidth: true
+                height: 220
+                color: "#1e293b"
+                radius: 8
+                border.color: "#334155"
+
+                Column {
+
+                    anchors.centerIn: parent
+                    spacing: 8
+
+                    Text {
+                        text: "HEADING"
+                        color: "#94a3b8"
+                        font.pixelSize: 12
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    CompassRose {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: 180
+                        height: 180
+                        heading: telemetry.yaw
+                    }
+                }
+            }
+
             Item {
                 Layout.fillHeight: true
             } // Spacer
@@ -311,7 +341,7 @@ Window {
 
                     Connections {
                         target: telemetry
-                        function onLatitudeChanged() {
+                        function onPositionChanged() {
                             var coord = QtPositioning.coordinate(telemetry.latitude, telemetry.longitude)
                             flightPath.addCoordinate(coord)
                             droneMap.center = coord
