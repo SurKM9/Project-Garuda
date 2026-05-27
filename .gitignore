@@ -1,5 +1,7 @@
 # Prerequisites
 build/
+build_full/
+build_sim/
 bin/
 obj/
 .cache/
@@ -10,6 +12,10 @@ obj/
 *.user
 *.swp
 compile_commands.json
+
+# claude
+.claude/
+CLAUDE.md
 
 # Doxygen derived products (We host these differently!)
 html/
