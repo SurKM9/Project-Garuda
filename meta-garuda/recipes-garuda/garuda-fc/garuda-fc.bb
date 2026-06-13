@@ -4,7 +4,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 # 1. Inherit the magic class
-inherit cmake externalsrc
+inherit cmake externalsrc systemd
 
 # 2. This tells BitBake to look in the 'files' subfolder for launch-drone.sh
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
@@ -16,7 +16,11 @@ EXTERNALSRC = "${THISDIR}/../../.."
 
 # 4. Include the helper script from the recipe's 'files' directory
 SRC_URI += "file://launch-drone.sh \
-            file://garuda.conf"
+            file://garuda.conf \
+            file://garuda-fc.service"
+
+SYSTEMD_SERVICE:${PN} = "garuda-fc.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 # 5. Build Configuration
 DEPENDS += "boost"
@@ -38,6 +42,10 @@ do_install() {
     # Install the config file to /etc/garuda/
     install -d ${D}${sysconfdir}/garuda
     install -m 0644 ${WORKDIR}/garuda.conf ${D}${sysconfdir}/garuda/garuda.conf
+
+    # Install the systemd files
+    install -d ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/garuda-fc.service ${D}${systemd_system_unitdir}/garuda-fc.service
 }
 
 RDEPENDS:${PN} = "libstdc++ boost-system"

@@ -1,0 +1,12 @@
+[Unit]
+Description=Garuda Flight Controller
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/drone_sim
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
