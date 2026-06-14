@@ -17,7 +17,8 @@ EXTERNALSRC = "${THISDIR}/../../.."
 # 4. Include the helper script from the recipe's 'files' directory
 SRC_URI += "file://launch-drone.sh \
             file://garuda.conf \
-            file://garuda-fc.service"
+            file://garuda-fc.service \
+            file://10-garuda.network"
 
 SYSTEMD_SERVICE:${PN} = "garuda-fc.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
@@ -46,6 +47,10 @@ do_install() {
     # Install the systemd files
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/garuda-fc.service ${D}${systemd_system_unitdir}/garuda-fc.service
+
+    # Install the systemd network files
+    install -d ${D}${sysconfdir}/systemd/network
+    install -m 0644 ${WORKDIR}/10-garuda.network ${D}${sysconfdir}/systemd/network/10-garuda.network
 }
 
 RDEPENDS:${PN} = "libstdc++ boost-system"
