@@ -26,6 +26,8 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 # 5. Build Configuration
 DEPENDS += "boost"
 
+PACKAGECONFIG[verbose-logging] = "-DGARUDA_VERBOSE_LOGGING=ON, -DGARUDA_VERBOSE_LOGGING=OFF"
+
 EXTRA_OECMAKE = "-DBUILD_DASHBOARD=OFF \
                  -DBUILD_SIMULATOR=ON \
                  -DBUILD_TESTS=OFF \

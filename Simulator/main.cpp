@@ -13,6 +13,12 @@
 #include "FlightController.hpp"
 #include "GarudaConfig.hpp"
 
+#ifdef GARUDA_VERBOSE_LOGGING
+    #define VLOG(x) std::cout << x << std::endl
+#else
+    #define VLOG(x) do {} while (0)
+#endif
+
 int main(int argc, char* argv[]) {
     std::cout << "--- Project Garuda: UAV Simulator Starting ---" << std::endl;
 
@@ -83,7 +89,7 @@ int main(int argc, char* argv[]) {
                              (struct sockaddr *)&sender_addr, &len);
 
         if (n == sizeof(CommandPacket)) {
-            std::cout << "[Network] Received command sequence: " << cmd_in.command_seq << std::endl;
+            VLOG("[Network] Received command sequence: " << cmd_in.command_seq);
             controller.handleCommand(cmd_in);
         }
 
