@@ -92,6 +92,17 @@ make -j$(nproc)
 - Add Layer: bitbake-layers add-layer /path/to/UAV_System/meta-garuda
 - Build Image: bitbake core-image-minimal
 
+> **Note:** `packagegroup-garuda` bundles `tcpdump` for on-target network debugging,
+> which requires `meta-openembedded` layers not included in stock Poky. Clone it
+> alongside `poky`, matching your Yocto release branch (e.g. `scarthgap`), and add
+> the `meta-oe`, `meta-python`, and `meta-networking` sub-layers in that order:
+> ```zsh
+> git clone -b scarthgap https://git.openembedded.org/meta-openembedded
+> bitbake-layers add-layer /path/to/meta-openembedded/meta-oe
+> bitbake-layers add-layer /path/to/meta-openembedded/meta-python
+> bitbake-layers add-layer /path/to/meta-openembedded/meta-networking
+> ```
+
 ### ⚡ Running the System
 
 1. The Drone (Inside QEMU)
