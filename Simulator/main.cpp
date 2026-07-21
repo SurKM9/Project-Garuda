@@ -19,7 +19,17 @@
     #define VLOG(x) do {} while (0)
 #endif
 
+namespace {
+    // Ctrl+C / systemd stop should break the loop, not kill the process outright,
+    // so the watchdog can be disarmed and sockets closed before exit.
+    volatile std::sig_atomic_t g_running = 1;
+    void handleShutdownSignal(int) { g_running = 0; }
+}
+
 int main(int argc, char* argv[]) {
+    std::signal(SIGINT, handleShutdownSignal);
+    std::signal(SIGTERM, handleShutdownSignal);
+
     std::cout << "--- Project Garuda: UAV Simulator Starting ---" << std::endl;
 
     GarudaConfig cfg = loadConfig();
@@ -64,7 +74,17 @@ int main(int argc, char* argv[]) {
     cliaddr.sin_port = htons(cfg.telemetry_port);
     inet_pton(AF_INET, cfg.gcs_ip.c_str(), &cliaddr.sin_addr);
 
-    // 3. Timing Setup
+    // 3. Hardware Watchdog
+    // Not present on a dev host, so a failed open is non-fatal - we just run
+    // without hardware watchdog protection in that case.
+    int watchdog_fd = open("/dev/watchdog", O_WRONLY);
+    if (watchdog_fd >= 0) {
+        std::cout << "[Watchdog] Hardware watchdog armed." << std::endl;
+    } else {
+        VLOG("[Watchdog] /dev/watchdog unavailable, running without hardware watchdog");
+    }
+
+    // 4. Timing Setup
     auto last_time = std::chrono::steady_clock::now();
     auto last_telemetry_time = std::chrono::steady_clock::now();
     uint32_t packet_counter = 0;
@@ -72,8 +92,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Simulator loop running. Listening on port " << cfg.command_port << "..." << std::endl;
     std::cout << "Press Ctrl+C to stop." << std::endl;
 
-    // 4. Main Simulation Loop
-    while (true) {
+    // 5. Main Simulation Loop
+    while (g_running) {
         // A. Calculate Delta Time (dt)
         auto current_time = std::chrono::steady_clock::now();
         std::chrono::duration<float> elapsed = current_time - last_time;
@@ -118,6 +138,13 @@ int main(int argc, char* argv[]) {
             sendto(sockfd, &tx_packet, sizeof(TelemetryPacket), 0,
                    (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
 
+            // Pet the watchdog on the same 10Hz cadence as telemetry: if the
+            // loop ever hangs, telemetry stops AND the watchdog stops getting
+            // fed, so the kernel reboots the board.
+            if (watchdog_fd >= 0) {
+                write(watchdog_fd, "\0", 1);
+            }
+
             last_telemetry_time = current_time;
         }
 
@@ -126,6 +153,12 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "[System] Closing sockets and exiting gracefully." << std::endl;
+    if (watchdog_fd >= 0) {
+        // Writing 'V' (WDIOC_MAGICCLOSE) disarms the watchdog on close instead
+        // of leaving it armed and rebooting the board after a clean stop.
+        write(watchdog_fd, "V", 1);
+        close(watchdog_fd);
+    }
     close(sockfd);
     return 0;
 }
