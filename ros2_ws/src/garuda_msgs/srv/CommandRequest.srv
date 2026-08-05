@@ -1,0 +1,11 @@
+uint32 command_seq
+uint8 type
+float32 param1
+
+uint8 ARM=1
+uint8 DISARM=2
+uint8 EMERGENCY_STOP=99
+---
+bool accepted
+uint8 resulting_state
+string reason

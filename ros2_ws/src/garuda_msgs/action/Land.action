@@ -1,0 +1,6 @@
+---
+bool accepted
+uint8 resulting_state
+string reason
+---
+float32 current_altitude

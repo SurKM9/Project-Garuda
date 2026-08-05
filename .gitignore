@@ -6,6 +6,10 @@ bin/
 obj/
 .cache/
 
+# colcon-generated (ROS 2 workspace build artifacts)
+ros2_ws/install/
+ros2_ws/log/
+
 # IDE files
 .vscode/
 .qtc_clangd/
