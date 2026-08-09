@@ -100,59 +100,9 @@ digraph garuda {
 
         config -> fsm    [style=dashed color="#a78bfa" fontcolor="#a78bfa" arrowhead=none]
         config -> worker [style=dashed color="#a78bfa" arrowhead=none]
+
+        // ── LOCALHOST UDP LOOPBACK ────────────────
+        udp_tx -> worker [label=" UDP :5001\n TelemetryPacket" color="#22c55e" fontcolor="#22c55e" ltail=cluster_sim lhead=cluster_dashboard]
+        qtmain -> fsm    [label=" UDP :5000\n CommandPacket" color="#38bdf8" fontcolor="#38bdf8" style=dashed ltail=cluster_dashboard lhead=cluster_sim]
     }
-
-    // ── NETWORK BRIDGE ───────────────────────────
-    subgraph cluster_bridge {
-        label="VIRTUAL NETWORK BRIDGE  (QEMU)"
-        style="filled,rounded"
-        fillcolor="#1e293b"
-        color="#475569"
-        fontcolor="#94a3b8"
-        fontsize=10
-
-        telem_chan [
-            label="TELEMETRY\nUDP :5001\n39 bytes @ 10 Hz"
-            fillcolor="#0f2818" color="#22c55e" fontcolor="#22c55e"
-            width=1.6
-        ]
-        cmd_chan [
-            label="COMMANDS\nUDP :5000\nCommandPacket"
-            fillcolor="#0f1f38" color="#38bdf8" fontcolor="#38bdf8"
-            width=1.6
-        ]
-    }
-
-    // ── GUEST MACHINE ────────────────────────────
-    subgraph cluster_guest {
-        label="GUEST MACHINE  (QEMU Drone)"
-        style="filled,rounded"
-        fillcolor="#0d2218"
-        color="#22c55e"
-        fontcolor="#22c55e"
-        fontsize=10
-
-        fc_guest [
-            label="FLIGHT CONTROLLER\n──────────────────\nGaruda Application Binary\nFlightController FSM • 10 Hz\n22 GoogleTest unit tests\nnon-blocking command socket"
-            fillcolor="#061a10" color="#22c55e" fontcolor="#22c55e"
-        ]
-        yocto [
-            label="YOCTO LINUX  (scarthgap)\n──────────────────\nmeta-garuda  priority 6\ngaruda-fc.bb  recipe\ngaruda.conf → /etc/garuda/\nlaunch-drone.sh"
-            fillcolor="#061a10" color="#4ade80" fontcolor="#4ade80"
-        ]
-        kernel [
-            label="LINUX KERNEL\nx86_64 — QEMU emulated\nqemux86-64 machine"
-            fillcolor="#061a10" color="#64748b"
-        ]
-        fc_guest -> yocto  [style=invis]
-        yocto   -> kernel  [style=invis]
-    }
-
-    // ── CROSS-CLUSTER EDGES ──────────────────────
-    udp_tx    -> telem_chan [label="TelemetryPacket" color="#22c55e" fontcolor="#22c55e" ltail=cluster_sim]
-    telem_chan -> worker    [color="#22c55e" lhead=cluster_dashboard]
-    fc_guest  -> telem_chan [color="#22c55e"]
-
-    qtmain    -> cmd_chan   [label="CommandPacket" color="#38bdf8" fontcolor="#38bdf8" style=dashed]
-    cmd_chan   -> fc_guest  [color="#38bdf8" style=dashed]
 }
