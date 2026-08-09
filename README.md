@@ -2,7 +2,7 @@
 
 [![Project Garuda CI](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml)
 
-A high-performance, real-time UAV ground control suite. Features a simulated drone flight engine running on Custom Embedded Linux (Yocto Project) and a modern Qt 6 dashboard, communicating over a low-latency UDP protocol.
+A high-performance, real-time UAV ground control suite. Features a simulated drone flight engine and a modern Qt 6 dashboard, communicating over a low-latency UDP protocol — currently migrating to ROS 2 (Jazzy) as the primary transport.
 
 ![Project Garuda Preview](./assets/preview.gif)
 ![Project Garuda Structure](./assets/architecture.png)
@@ -34,24 +34,24 @@ Project Garuda demonstrates the integration of low-level Linux systems programmi
 
 ## 🏗 Architecture
 
-The project is structured into three distinct modules to ensure a clean separation of concerns:
+The project is structured into four distinct modules to ensure a clean separation of concerns:
 
 1.  **`UAV_Common`**: The "Contract." Contains `TelemetryPacket` (altitude, velocity, roll, pitch, yaw, battery voltage, GPS, flight mode — 39 bytes, enforced by `static_assert`) and `CommandPacket`. Also provides `GarudaConfig`, a header-only config loader that resolves network settings from `/etc/garuda/garuda.conf`, a local `garuda.conf`, QEMU TAP auto-detection, or localhost defaults — in that order. Houses the lock-free `SpscQueue<T, N>` template.
 2.  **`Simulator`**: The "Drone." Manages a 6-state flight FSM (IDLE → ARMED → TAKEOFF → FLYING → LANDING → EMERGENCY), a physics engine, and simulates attitude (pitch proportional to climb rate, yaw holds a constant cruise heading of 90° east). Validated by 22 GoogleTest unit tests.
 3.  **`Dashboard`**: The "Ground Control." Background `std::thread` pushes packets into an SPSC queue; the Qt main thread drains it via `QMetaObject::invokeMethod`. UI includes real-time altitude chart, GPS map with flight path trail, an attitude indicator (artificial horizon), and a heading compass rose.
-4.  **`meta-garuda`**: The Yocto Layer. Contains the BitBake recipes and configurations to build the Flight Controller into a production-ready Linux image.
+4.  **`ros2_ws`**: In-progress ROS 2 (Jazzy) migration. `garuda_msgs` defines the interfaces (`TelemetryStatus`, `CommandRequest`, `Takeoff`/`Land` actions); `garuda_flight_sim` will host a `SimulatorNode` wrapping `FlightController` unchanged.
 
 ---
 
 ## 🛰 SITL Networking Matrix
 
-The system supports two primary modes of operation. Port 5000 is used for Command Uplink and Port 5001 is used for Telemetry Downlink.
+Port 5000 is used for Command Uplink and Port 5001 is used for Telemetry Downlink.
 
 | Environment | Mode | Host (GCS) IP | Drone IP |
 | :--- | :--- | :--- | :--- |
 | **Local Desktop** | Localhost | `127.0.0.1` | `127.0.0.1` |
-| **Yocto / QEMU** | TAP Bridge | `192.168.7.1` | `192.168.7.2` |
-| **Yocto / QEMU** | SLIRP (NAT) | `10.0.2.2` | `10.0.2.15` |
+
+> Earlier revisions also supported a Yocto/QEMU embedded target (TAP bridge and SLIRP NAT networking); that path was retired in favor of ROS 2 on a stock Linux target — see git history prior to commit `310ea04` if needed.
 
 ### Install All Dependencies
 One-shot command to install the core development environment on Ubuntu/Kubuntu:
@@ -86,48 +86,25 @@ cmake .. -DBUILD_DASHBOARD=ON -DBUILD_SIMULATOR=ON
 make -j$(nproc)
 ```
 
-### Yocto Embedded Build (Poky)
-- To build the Project Garuda Linux distribution:
-- Initialize Environment: source oe-init-build-env
-- Add Layer: bitbake-layers add-layer /path/to/UAV_System/meta-garuda
-- Build Image: bitbake core-image-minimal
-
-> **Note:** `packagegroup-garuda` bundles `tcpdump` for on-target network debugging,
-> which requires `meta-openembedded` layers not included in stock Poky. Clone it
-> alongside `poky`, matching your Yocto release branch (e.g. `scarthgap`), and add
-> the `meta-oe`, `meta-python`, and `meta-networking` sub-layers in that order:
-> ```zsh
-> git clone -b scarthgap https://git.openembedded.org/meta-openembedded
-> bitbake-layers add-layer /path/to/meta-openembedded/meta-oe
-> bitbake-layers add-layer /path/to/meta-openembedded/meta-python
-> bitbake-layers add-layer /path/to/meta-openembedded/meta-networking
-> ```
+> **Note:** this project previously also supported a Yocto/Poky embedded build (`meta-garuda`
+> layer, BitBake recipes, QEMU `qemux86-64` target). That path was retired in favor of a
+> ROS 2 + stock Linux target — see git history prior to commit `310ea04` if needed.
 
 ### ⚡ Running the System
 
-1. The Drone (Inside QEMU)
-Launch the virtual machine. For TAP networking:
-
+1. The Drone (Simulator)
 ```zsh
-runqemu qemux86-64
+./Simulator/UAV_Simulator
 ```
+Listens for commands on port 5000 and sends telemetry on port 5001. Uses `garuda.conf`/localhost defaults unless overridden.
 
-Once booted, run the pre-configured launch script:
-
-```zsh
-launch-drone  # Automatically connects to the host gateway at 192.168.7.1
-```
-
-2. The Dashboard (Native Host)
-Run the dashboard on your host machine. It automatically detects whether QEMU TAP networking is active and connects to `192.168.7.2`. If QEMU is not running, it falls back to localhost.
-
+2. The Dashboard (GCS)
 ```zsh
 ./Dashboard/DashboardApp
 ```
-
-A CLI argument overrides auto-detection for one-off use:
+Connects to `127.0.0.1` by default. A CLI argument overrides this for a custom target:
 ```zsh
-./Dashboard/DashboardApp 192.168.7.2
+./Dashboard/DashboardApp <drone-ip>
 ```
 
 ## 📈 Key Features
