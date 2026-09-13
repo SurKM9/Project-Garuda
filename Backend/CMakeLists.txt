@@ -1,8 +1,8 @@
 include(FetchContent)
 
 FetchContent_Declare(mavlink
-    GIT_REPOSITORY https://github.com/mavlink/c_library_v2.git
-    GIT_TAG 04fffaab116486ffdf7501c37a3f7393eb7beffc
+    URL https://github.com/mavlink/c_library_v2/archive/04fffaab116486ffdf7501c37a3f7393eb7beffc.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(mavlink)
 
