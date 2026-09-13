@@ -20,6 +20,7 @@ option(BUILD_DASHBOARD "Build the Qt Dashboard" ON)
 option(BUILD_SIMULATOR "Build the Flight Controller Simulator" ON)
 option(BUILD_TESTS "Build unit tests" ON)
 option(BUILD_DOCS  "Build API documentation" ON)
+option(BUILD_BACKEND "Build backend logic" ON)
 
 add_subdirectory(Common)
 
@@ -29,6 +30,10 @@ endif()
 
 if(BUILD_DASHBOARD)
     add_subdirectory(Dashboard)
+endif()
+
+if(BUILD_BACKEND)
+    add_subdirectory(Backend)
 endif()
 
 if(BUILD_TESTS)

@@ -3,6 +3,7 @@
 #include <atomic>
 #include <mutex>
 #include <cstring>
+#include "common/mavlink.h"
 
 // Networking
 #include <sys/socket.h>
