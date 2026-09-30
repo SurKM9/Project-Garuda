@@ -1,3 +1,4 @@
+add_subdirectory(Mavlink)
 add_library(UAV_Common INTERFACE)
 
 target_include_directories(UAV_Common INTERFACE

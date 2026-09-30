@@ -1,7 +1,5 @@
 # Prerequisites
-build/
-build_full/
-build_sim/
+build*/
 bin/
 obj/
 .cache/
