@@ -3,7 +3,7 @@
 #include <atomic>
 #include <mutex>
 #include <cstring>
-#include "common/mavlink.h"
+#include "ardupilotmega/mavlink.h"
 
 // Networking
 #include <sys/socket.h>

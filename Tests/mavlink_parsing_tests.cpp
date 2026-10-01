@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
-#include "common/mavlink.h"
-#include "standard/mavlink_msg_global_position_int.h"
+#include "ardupilotmega/mavlink.h"
 
 TEST(MavlinkParsingTests, DecodeAttitudeMessage)
 {
@@ -30,6 +29,40 @@ TEST(MavlinkParsingTests, DecodeAttitudeMessage)
     EXPECT_FLOAT_EQ(attitude.roll, 0.1f);
     EXPECT_FLOAT_EQ(attitude.pitch, 0.2f);
     EXPECT_FLOAT_EQ(attitude.yaw, 0.3f);
+}
+
+TEST(MavlinkParsingTests, DecodeEkfStatusReportMessage)
+{
+    mavlink_message_t msg;
+    mavlink_msg_ekf_status_report_pack(1,1,&msg, 0x01FF, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f);
+    uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
+    uint16_t len = mavlink_msg_to_send_buffer(buffer, &msg);
+
+    mavlink_message_t rx_msg;
+    mavlink_status_t status;
+    bool got_message = false;
+
+    for(uint16_t i = 0; i < len; ++i)
+    {
+        if(mavlink_parse_char(MAVLINK_COMM_0, buffer[i], &rx_msg, &status) == MAVLINK_FRAMING_OK)
+        {
+            got_message = true;
+        }
+    }
+
+    ASSERT_TRUE(got_message) << "Parser never produced a complete message";
+    ASSERT_EQ(rx_msg.msgid, MAVLINK_MSG_ID_EKF_STATUS_REPORT);
+
+    mavlink_ekf_status_report_t ekfReport;
+    mavlink_msg_ekf_status_report_decode(&rx_msg, &ekfReport);
+
+    EXPECT_EQ(ekfReport.flags, 0x01FF);
+    EXPECT_FLOAT_EQ(ekfReport.velocity_variance, 0.1f);
+    EXPECT_FLOAT_EQ(ekfReport.pos_horiz_variance, 0.2f);
+    EXPECT_FLOAT_EQ(ekfReport.pos_vert_variance, 0.3f);
+    EXPECT_FLOAT_EQ(ekfReport.compass_variance, 0.4f);
+    EXPECT_FLOAT_EQ(ekfReport.terrain_alt_variance, 0.5f);
+    EXPECT_FLOAT_EQ(ekfReport.airspeed_variance, 0.6f);
 }
 
 TEST(MavlinkParsingTests, DecodeGlobalPositionIntMessage)
