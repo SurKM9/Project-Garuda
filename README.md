@@ -36,7 +36,7 @@ Project Garuda demonstrates the integration of low-level Linux systems programmi
 
 The project is structured into four distinct modules to ensure a clean separation of concerns:
 
-1.  **`UAV_Common`**: The "Contract." Contains `TelemetryPacket` (altitude, velocity, roll, pitch, yaw, battery voltage, GPS, flight mode — 39 bytes, enforced by `static_assert`) and `CommandPacket`. Also provides `GarudaConfig`, a header-only config loader that resolves network settings from `/etc/garuda/garuda.conf`, a local `garuda.conf`, QEMU TAP auto-detection, or localhost defaults — in that order. Houses the lock-free `SpscQueue<T, N>` template.
+1.  **`UAV_Common`**: The "Contract." Contains `TelemetryPacket` (altitude, velocity, roll, pitch, yaw, battery voltage, GPS, flight mode — 39 bytes, enforced by `static_assert`) and `CommandPacket`. Also provides `GarudaConfig`, a header-only config loader that resolves network settings from `/etc/garuda/garuda.conf`, a local `garuda.conf`, or localhost defaults — in that order. Houses the lock-free `SpscQueue<T, N>` template.
 2.  **`Simulator`**: The "Drone." Manages a 6-state flight FSM (IDLE → ARMED → TAKEOFF → FLYING → LANDING → EMERGENCY), a physics engine, and simulates attitude (pitch proportional to climb rate, yaw holds a constant cruise heading of 90° east). Validated by 22 GoogleTest unit tests.
 3.  **`Dashboard`**: The "Ground Control." Background `std::thread` pushes packets into an SPSC queue; the Qt main thread drains it via `QMetaObject::invokeMethod`. UI includes real-time altitude chart, GPS map with flight path trail, an attitude indicator (artificial horizon), and a heading compass rose.
 4.  **`ros2_ws`**: In-progress ROS 2 (Jazzy) migration. `garuda_msgs` defines the interfaces (`TelemetryStatus`, `CommandRequest`, `Takeoff`/`Land` actions); `garuda_flight_sim` will host a `SimulatorNode` wrapping `FlightController` unchanged.
@@ -51,7 +51,7 @@ Port 5000 is used for Command Uplink and Port 5001 is used for Telemetry Downlin
 | :--- | :--- | :--- | :--- |
 | **Local Desktop** | Localhost | `127.0.0.1` | `127.0.0.1` |
 
-> Earlier revisions also supported a Yocto/QEMU embedded target (TAP bridge and SLIRP NAT networking); that path was retired in favor of ROS 2 on a stock Linux target — see git history prior to commit `310ea04` if needed.
+> Earlier revisions also supported a Yocto/QEMU embedded target (TAP bridge and SLIRP NAT networking); that path was retired — see git history prior to commit `310ea04` if needed.
 
 ### Install All Dependencies
 One-shot command to install the core development environment on Ubuntu/Kubuntu:
@@ -87,8 +87,8 @@ make -j$(nproc)
 ```
 
 > **Note:** this project previously also supported a Yocto/Poky embedded build (`meta-garuda`
-> layer, BitBake recipes, QEMU `qemux86-64` target). That path was retired in favor of a
-> ROS 2 + stock Linux target — see git history prior to commit `310ea04` if needed.
+> layer, BitBake recipes, QEMU `qemux86-64` target). That path was retired —
+> see git history prior to commit `310ea04` if needed.
 
 ### ⚡ Running the System
 

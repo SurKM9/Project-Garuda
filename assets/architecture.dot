@@ -41,7 +41,7 @@ digraph garuda {
 
         // GarudaConfig
         config [
-            label="GarudaConfig\n──────────────────\n1. /etc/garuda/garuda.conf\n2. ./garuda.conf\n3. QEMU TAP auto-detect\n4. localhost defaults"
+            label="GarudaConfig\n──────────────────\n1. /etc/garuda/garuda.conf\n2. ./garuda.conf\n3. localhost defaults"
             fillcolor="#1e1040" color="#a78bfa" fontcolor="#a78bfa"
         ]
 
