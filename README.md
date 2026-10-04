@@ -2,7 +2,7 @@
 
 [![Project Garuda CI](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SurKM9/Project-Garuda/actions/workflows/ci.yml)
 
-A high-performance, real-time UAV ground control suite. Features a simulated drone flight engine and a modern Qt 6 dashboard, communicating over a low-latency UDP protocol — currently migrating to ROS 2 (Jazzy) as the primary transport.
+A high-performance, real-time UAV ground control suite. Features a simulated drone flight engine and a modern Qt 6 dashboard, communicating over a low-latency UDP protocol — currently migrating to ArduPilot SITL and MAVLink as the primary transport.
 
 ![Project Garuda Preview](./assets/preview.gif)
 ![Project Garuda Structure](./assets/architecture.png)
@@ -39,7 +39,7 @@ The project is structured into four distinct modules to ensure a clean separatio
 1.  **`UAV_Common`**: The "Contract." Contains `TelemetryPacket` (altitude, velocity, roll, pitch, yaw, battery voltage, GPS, flight mode — 39 bytes, enforced by `static_assert`) and `CommandPacket`. Also provides `GarudaConfig`, a header-only config loader that resolves network settings from `/etc/garuda/garuda.conf`, a local `garuda.conf`, or localhost defaults — in that order. Houses the lock-free `SpscQueue<T, N>` template.
 2.  **`Simulator`**: The "Drone." Manages a 6-state flight FSM (IDLE → ARMED → TAKEOFF → FLYING → LANDING → EMERGENCY), a physics engine, and simulates attitude (pitch proportional to climb rate, yaw holds a constant cruise heading of 90° east). Validated by 22 GoogleTest unit tests.
 3.  **`Dashboard`**: The "Ground Control." Background `std::thread` pushes packets into an SPSC queue; the Qt main thread drains it via `QMetaObject::invokeMethod`. UI includes real-time altitude chart, GPS map with flight path trail, an attitude indicator (artificial horizon), and a heading compass rose.
-4.  **`ros2_ws`**: In-progress ROS 2 (Jazzy) migration. `garuda_msgs` defines the interfaces (`TelemetryStatus`, `CommandRequest`, `Takeoff`/`Land` actions); `garuda_flight_sim` will host a `SimulatorNode` wrapping `FlightController` unchanged.
+4.  **`Common/Mavlink`**: In-progress ArduPilot/MAVLink migration. Fetches the MAVLink `c_library_v2` headers (ardupilotmega dialect, pinned by commit) at configure time and exposes them as the `mavlink_headers` target; message decoding is covered by GoogleTest.
 
 ---
 
