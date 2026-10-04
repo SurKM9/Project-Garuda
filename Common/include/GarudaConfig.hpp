@@ -5,19 +5,12 @@
 #include <fstream>
 #include <cstdint>
 #include <iostream>
-#include <dirent.h>
-#include <unistd.h>
-#include <climits>
-#include <cctype>
-#include <ifaddrs.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 /**
  * @struct GarudaConfig
  * @brief Network configuration for the GCS and Simulator.
- * Populated by loadConfig() using a priority-ordered search across config file paths,
- * QEMU TAP auto-detection, and localhost defaults.
+ * Populated by loadConfig() using a priority-ordered search across config file paths
+ * and localhost defaults.
  */
 struct GarudaConfig {
     std::string gcs_ip         = "127.0.0.1"; ///< IP address of the Ground Control Station
@@ -26,68 +19,10 @@ struct GarudaConfig {
     uint16_t    command_port   = 5000;        ///< UDP port the Simulator listens on for commands
 };
 
-// Returns true if a qemu-system-* process is currently running.
-inline bool isQemuRunning()
-{
-    DIR* dir = opendir("/proc");
-    if (!dir) return false;
-
-    bool found = false;
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
-        for (const char* c = entry->d_name; *c; ++c)
-            if (!std::isdigit(static_cast<unsigned char>(*c))) goto next_entry;
-
-        {
-            char exe_path[64];
-            char link_buf[PATH_MAX];
-            std::snprintf(exe_path, sizeof(exe_path), "/proc/%s/exe", entry->d_name);
-            ssize_t len = readlink(exe_path, link_buf, sizeof(link_buf) - 1);
-            if (len > 0) {
-                link_buf[len] = '\0';
-                if (std::string(link_buf).find("qemu-system") != std::string::npos) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        next_entry:;
-    }
-
-    closedir(dir);
-    return found;
-}
-
-// Returns true only when tap0 carries 192.168.7.1 AND a qemu-system-* process
-// is actually running — prevents leftover TAP interfaces from triggering QEMU mode.
-inline bool detectQemuTap()
-{
-    struct ifaddrs* ifaddr = nullptr;
-    if (getifaddrs(&ifaddr) == -1) return false;
-
-    bool tap_found = false;
-    for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-        if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET) continue;
-
-        char buf[INET_ADDRSTRLEN];
-        auto* sin = reinterpret_cast<struct sockaddr_in*>(ifa->ifa_addr);
-        inet_ntop(AF_INET, &sin->sin_addr, buf, sizeof(buf));
-
-        if (std::string(buf) == "192.168.7.1") {
-            tap_found = true;
-            break;
-        }
-    }
-
-    freeifaddrs(ifaddr);
-    return tap_found && isQemuRunning();
-}
-
 // Config resolution order:
-//   1. /etc/garuda/garuda.conf  (embedded target, installed by Yocto)
+//   1. /etc/garuda/garuda.conf  (system-wide config)
 //   2. ./garuda.conf            (local override for development)
-//   3. QEMU TAP auto-detect     (192.168.7.1 present on host → use 192.168.7.x)
-//   4. Defaults                 (localhost)
+//   3. Defaults                 (localhost)
 inline GarudaConfig loadConfig()
 {
     GarudaConfig cfg;
@@ -109,13 +44,7 @@ inline GarudaConfig loadConfig()
     }
 
     if (!file.is_open()) {
-        if (detectQemuTap()) {
-            cfg.gcs_ip   = "192.168.7.1";
-            cfg.drone_ip = "192.168.7.2";
-            std::cout << "[Config] QEMU TAP detected. Using 192.168.7.x network.\n";
-        } else {
-            std::cout << "[Config] No QEMU TAP detected. Using defaults (localhost).\n";
-        }
+        std::cout << "[Config] No config file found. Using defaults (localhost).\n";
         return cfg;
     }
 
