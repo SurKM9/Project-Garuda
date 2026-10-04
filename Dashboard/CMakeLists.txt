@@ -2,6 +2,9 @@
 # This tells CMake where Qt is and loads the 'qt_add_executable' macro
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Charts Widgets Location Positioning)
 
+qt_policy(SET QTP0001 NEW)
+qt_policy(SET QTP0004 NEW)
+
 # 2. These are the engines that handle Signals/Slots and Resources
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -19,6 +22,7 @@ qt_add_executable(DashboardApp
 qt_add_qml_module(DashboardApp
     URI UAV_Dashboard
     VERSION 1.0
+    RESOURCE_PREFIX /
     QML_FILES
         qml/Main.qml
         qml/AttitudeIndicator.qml
