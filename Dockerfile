@@ -10,7 +10,7 @@ RUN apt update && \
     build-essential cmake clang-18 llvm-18 \
     qt6-base-dev qt6-declarative-dev qt6-charts-dev \
     libqt6charts6-dev libxkbcommon-dev libgl1-mesa-dev \
-    libvulkan-dev libboost-all-dev \
+    libvulkan-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV CC=clang-18
@@ -43,7 +43,6 @@ RUN apt update && \
     apt install -y \
     qt6-base-dev \
     libqt6charts6 \
-    libboost-system-dev \
     libxkbcommon0 \
     && rm -rf /var/lib/apt/lists/*
 
