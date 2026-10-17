@@ -8,4 +8,9 @@ FetchContent_Declare(mavlink
 FetchContent_MakeAvailable(mavlink)
 
 add_library(mavlink_headers INTERFACE)
+add_library(garuda_mavlink STATIC MavlinkParser.cpp)
+
 target_include_directories(mavlink_headers SYSTEM INTERFACE ${mavlink_SOURCE_DIR})
+target_include_directories(garuda_mavlink PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(garuda_mavlink PUBLIC mavlink_headers)

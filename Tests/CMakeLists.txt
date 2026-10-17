@@ -19,6 +19,7 @@ add_executable(run_tests
     flight_logic_tests.cpp
     ../Simulator/FlightController.cpp
     mavlink_parsing_tests.cpp
+    mavlink_parser_tests.cpp
 )
 
 # Ensure the tests can find the Simulator headers
@@ -33,6 +34,7 @@ target_link_libraries(run_tests
     Threads::Threads
     UAV_Common
     mavlink_headers
+    garuda_mavlink
 )
 
 # This tells CMake to 'discover' the tests inside the executable
